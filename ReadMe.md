@@ -1,5 +1,5 @@
 # POC-SLT: Partial Object Completion with SDF Latent Transformers
-[![Cite this repository](./CITATION.cff)](#-citation)
+[![PubPub Paper](https://img.shields.io/badge/PubPub-POC--SLT-lightgrey)](https://crv.pubpub.org/pub/yanc7d1w)
 
 **Authors**: Faezeh Zakeri, Raphael Braun, Lukas Ruppert, and Hendrik P.A. Lensch
 
