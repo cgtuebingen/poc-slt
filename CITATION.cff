@@ -1,0 +1,34 @@
+cff-version: 1.2.0
+message: "If you use this work, please cite the following paper."
+title: "POC-SLT: Partial Object Completion with SDF Latent Transformers"
+authors:
+  - family-names: "Zakeri"
+    given-names: "Faezeh"
+  - family-names: "Braun"
+    given-names: "Raphael"
+  - family-names: "Ruppert"
+    given-names: "Lukas"
+  - family-names: "Lensch"
+    given-names: "Hendrik P.A."
+type: article
+year: 2025
+month: 5
+date-released: "2025-05-27"
+journal: "Proceedings of the Conference on Robots and Vision"
+url: "https://crv.pubpub.org/pub/yanc7d1w"
+preferred-citation:
+  type: article
+  title: "POC-SLT: Partial Object Completion with SDF Latent Transformers"
+  authors:
+    - family-names: "Zakeri"
+      given-names: "Faezeh"
+    - family-names: "Braun"
+      given-names: "Raphael"
+    - family-names: "Ruppert"
+      given-names: "Lukas"
+    - family-names: "Lensch"
+      given-names: "Hendrik P.A."
+  journal: "Proceedings of the Conference on Robots and Vision"
+  year: 2025
+  month: 5
+  url: "https://crv.pubpub.org/pub/yanc7d1w"
