@@ -30,6 +30,9 @@
 
 ---
 
+## Demo Gif
+![POC-SLT Demo](docs/demo.gif)
+
 ## Project Structure
 
 ```bash
@@ -59,7 +62,5 @@ If you use this work, please cite it as:
 You can also find citation metadata in the [CITATION.cff](./CITATION.cff) file or by clicking **Cite this repository** on the right.
 
 
-## Demo Gif
-![POC-SLT Demo](docs/demo.gif)
 
 
