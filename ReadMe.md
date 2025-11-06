@@ -62,4 +62,4 @@ If you use this work, please cite it as:
   month   = {May 27},
   note    = {https://crv.pubpub.org/pub/yanc7d1w}
 }
-You can also find citation metadata in the [CITATION.cff](./CITATION.cff) file or by clicking **Cite this repository** on the right.
+You can also find citation metadata files or by clicking **Cite this repository** on the right.
