@@ -40,3 +40,15 @@
 ├── eval.py
 └── README.md
 ```
+
+
+## ? Citation
+
+If you use this work, please cite:
+
+> **Zakeri, Faezeh**, Braun, Raphael, Ruppert, Lukas, and Lensch, Hendrik P.A.
+> *POC-SLT: Partial Object Completion with SDF Latent Transformers.*
+> *Proceedings of the Conference on Robots and Vision*, May 27, 2025.
+> [https://crv.pubpub.org/pub/yanc7d1w](https://crv.pubpub.org/pub/yanc7d1w)
+
+You can also find citation metadata in the [CITATION.cff](./CITATION.cff) file or by clicking **?Cite this repository?** on the right.
