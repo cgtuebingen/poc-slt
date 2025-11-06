@@ -14,13 +14,13 @@
 ## Project Progress Checklist
 
 - [ ] Upload pretrained models
-- [ ] Upload Dataset LMDB
+<!--- [ ] Upload Dataset LMDB-->
 - [ ] Upload train and validation splits
 - [ ] Release main codebase
 - [ ] Add evaluation scripts
 - [ ] Add Demo Results and videos
 - [ ] Clean up and document configs
-- [ ] Add citation and license info
+- [ ] Add license info
 
 ---
 
