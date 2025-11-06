@@ -62,4 +62,6 @@ You can also find citation metadata in the [CITATION.cff](./CITATION.cff) file o
 ## Demo Video
 
 Watch the POC-SLT demo video here:
-[Play Demo Video](https://cgtuebingen.github.io/poc-slt/)
+[![Watch Demo](https://img.shields.io/badge/Watch-Demo-blue)](https://cgtuebingen.github.io/poc-slt/)
+
+
