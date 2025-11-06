@@ -1,4 +1,5 @@
 # POC-SLT: Partial Object Completion with SDF Latent Transformers
+[![Cite this repository](https://img.shields.io/badge/Cite%20this%20repository-BibTeX-blue)](#-citation)
 
 **Authors**: Faezeh Zakeri, Raphael Braun, Lukas Ruppert, and Hendrik P.A. Lensch
 
@@ -44,11 +45,15 @@
 
 ## Citation
 
-If you use this work, please cite:
+If you use this work, please cite it as:
 
-> **Zakeri, Faezeh**, Braun, Raphael, Ruppert, Lukas, and Lensch, Hendrik P.A.
-> *POC-SLT: Partial Object Completion with SDF Latent Transformers.*
-> *Proceedings of the Conference on Robots and Vision*, May 27, 2025.
-> [https://crv.pubpub.org/pub/yanc7d1w](https://crv.pubpub.org/pub/yanc7d1w)
-
+```bibtex
+@article{Zakeri2025POC,
+  author  = {Zakeri, Faezeh and Braun, Raphael and Ruppert, Lukas and Lensch, Hendrik P.A.},
+  title   = {POC-SLT: Partial Object Completion with SDF Latent Transformers},
+  journal = {Proceedings of the Conference on Robots and Vision},
+  year    = {2025},
+  month   = {May 27},
+  note    = {https://crv.pubpub.org/pub/yanc7d1w}
+}
 You can also find citation metadata in the [CITATION.cff](./CITATION.cff) file or by clicking **?Cite this repository?** on the right.
