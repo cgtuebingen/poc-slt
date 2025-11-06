@@ -31,7 +31,10 @@
 ---
 
 ## Demo Gif
-![POC-SLT Demo](docs/demo.gif)
+<p align="center">
+  <img src="docs/demo.gif" alt="POC-SLT Demo">
+</p>
+<!--![POC-SLT Demo](docs/demo.gif)-->
 
 ## Project Structure
 
