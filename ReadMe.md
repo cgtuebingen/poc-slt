@@ -30,7 +30,7 @@
 ---
 
 ## Demo Gif
-[![For high quality Video, click here!]](https://cgtuebingen.github.io/poc-slt/)
+[[For high quality Video, click here!]](https://cgtuebingen.github.io/poc-slt/)
 <p align="center">
   <img src="docs/demo.gif" alt="POC-SLT Demo">
 </p>
