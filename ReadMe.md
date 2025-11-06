@@ -1,6 +1,6 @@
 # POC-SLT: Partial Object Completion with SDF Latent Transformers
 [![Cite this repository](https://img.shields.io/badge/Cite%20this%20repo-BibTeX-blue)](https://crv.pubpub.org/pub/yanc7d1w)
-[![Watch Demo](https://img.shields.io/badge/Watch-Demo-blue)](https://cgtuebingen.github.io/poc-slt/)
+[![Watch Video](https://img.shields.io/badge/Watch-Demo-blue)](https://cgtuebingen.github.io/poc-slt/)
 
 **Authors**: Faezeh Zakeri, Raphael Braun, Lukas Ruppert, and Hendrik P.A. Lensch
 
@@ -18,7 +18,6 @@
 - [ ] Upload train and validation splits
 - [ ] Release main codebase
 - [ ] Add evaluation scripts
-- [ ] Add Demo Results and videos
 - [ ] Clean up and document configs
 - [ ] Add license info
 <!--- [ ] Upload Dataset LMDB-->
@@ -63,7 +62,3 @@ If you use this work, please cite it as:
   note    = {https://crv.pubpub.org/pub/yanc7d1w}
 }
 You can also find citation metadata in the [CITATION.cff](./CITATION.cff) file or by clicking **Cite this repository** on the right.
-
-
-
-
