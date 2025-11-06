@@ -30,6 +30,7 @@
 ---
 
 ## Demo Gif
+[![For high quality Video, click here!](https://img.shields.io/badge/Watch-Demo-blue)](https://cgtuebingen.github.io/poc-slt/)
 <p align="center">
   <img src="docs/demo.gif" alt="POC-SLT Demo">
 </p>
