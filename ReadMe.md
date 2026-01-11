@@ -15,7 +15,6 @@
 ## Project Progress Checklist
 
 - [ ] Upload pretrained models
-- [ ] Upload train and validation splits
 - [ ] Release main codebase
 - [ ] Add evaluation scripts
 - [ ] Clean up and document configs
