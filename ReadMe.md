@@ -35,6 +35,9 @@
 </p>
 <!--![POC-SLT Demo](docs/demo.gif)-->
 
+## 📦 Model checkpoint
+[Shape Completion on Shapenet](https://huggingface.co/zakeri68/poc-slt-shapenet-completion)
+
 ## Project Structure
 
 ```bash
