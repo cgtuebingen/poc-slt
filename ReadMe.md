@@ -36,7 +36,9 @@
 
 ## 📦 Model checkpoint
 [Shape Completion on Shapenet](https://huggingface.co/zakeri68/poc-slt-shapenet-completion)
+
 [Shape Completion on ABC](https://huggingface.co/zakeri68/poc-slt-abc-completion)
+
 [Patchwise Variational Autoencoder (P-VAE) on Shapenet](https://huggingface.co/zakeri68/poc-slt-shapenet-p-vae)
 
 ## Project Structure
