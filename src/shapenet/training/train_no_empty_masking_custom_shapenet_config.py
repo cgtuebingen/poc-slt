@@ -1,6 +1,7 @@
 import os
 import sys
-sys.path.append('..')
+sys.path.append("....")
+
 import argparse
 import torch
 from pytorch_lightning.callbacks import LearningRateMonitor
@@ -11,7 +12,6 @@ from train_no_empty_masking_custom_shapenet import TransformerSDFtoSDFShapenetNo
 def main():
     parser = argparse.ArgumentParser()
     #  for SDFtoSDF
-
     parser.add_argument("--points_to_sample", default=1024, type=int)  #
     parser.add_argument("--query_number", default=1024, type=int)  #
     parser.add_argument("--examples_per_epoch", default=1000, type=int)  #
@@ -24,26 +24,11 @@ def main():
     parser.add_argument("--learning_rate", default=1e-5, type=float)
     parser.add_argument("--warmup_ratio", default=0.02, type=float)
     # --------------------------------------------
-    # on scratch 2
-    # parser.add_argument(
-    #     "--train_lmdb_path",
-    #     default="/graphics/scratch2/staff/zakeri/LMDBs/shapenetcorev2_SDF_SpanningMultiResVoxel32_128fullmesh_normalized_train/encoded_combined/",
-    #
-    #     type=str,
-    # )
-    # on Heracleum or cluster-gpu-02
     parser.add_argument(
         "--train_lmdb_path",
         default="/scratch/zakeri/shapenetcorev2_SDF_SpanningMultiResVoxel32_128fullmesh_normalized_train/encoded_combined/",  # dataset for full mesh with 128^3
         type=str,
     )
-
-    # parser.add_argument(
-    #     "--train_lmdb_path",
-    #     default="/ceph/zakeri/shapenetcorev2_SDF_SpanningMultiResVoxel32_128fullmesh_normalized_train/encoded_combined/",
-    #
-    #     type=str,
-    # )
 
     parser.add_argument(
         "--val_lmdb_path",
@@ -83,6 +68,15 @@ def main():
     parser.add_argument("--pre_trained", default=True, type=bool)
     parser.add_argument("--masking_ratio", default=0.60, type=float)
 
+    # num_gpus = 3
+    # num_train_steps = len(train_dataset) // (hparams.batch_size * num_gpus) * trainer.max_epochs
+    # print("\n num_train_steps: ", num_train_steps)
+    # num_warmup_steps = int(warmup_ratio * num_train_steps)
+    # print("\n num_warmup_steps: ", num_warmup_steps)
+    #
+    parser.add_argument("--num_warmup_steps", required=True, type=int)
+    parser.add_argument("--num_training_steps",  required=True, type=int)
+
     parser = pl.Trainer.add_argparse_args(parser)
     args = parser.parse_args()
     # write the checkpoints every 1000 steps
@@ -119,6 +113,8 @@ def main():
         query_number=args.query_number,
         examples_per_epoch=args.examples_per_epoch,
         transformer_checkpoint_path=args.transformer_checkpoint_path,
+        num_warmup_steps=args.num_warmup_steps,
+        num_training_steps=args.num_training_steps,
     )
 
     # configure the pytorch-lightning trainer.
@@ -127,7 +123,7 @@ def main():
         accelerator="gpu",
         devices=-1,
         num_nodes=1,
-        strategy=DDPStrategy(process_group_backend="NCCL"),  # NCCL tends to be unreliable for some reason
+        strategy=DDPStrategy(process_group_backend="NCCL"),
         max_epochs=2200,
         log_every_n_steps=200,
         detect_anomaly=False,
@@ -137,22 +133,10 @@ def main():
         default_root_dir="/graphics/scratch2/staff/zakeri/train_logs/Transformer/flash_attention/with_optimized_latent_codes/full_dataset/overfitting/clean_code/regular_cat_fulldataset_alternative_test3_normalized_shapenet_noEmptymasking_custom/",
         # precision="bf16",
         # gradient_clip_val=0.5,
-        # resume_from_checkpoint ="/graphics/scratch2/staff/zakeri/train_logs/Transformer/flash_attention/with_optimized_latent_codes/full_dataset/overfitting/clean_code/regular_cat_fulldataset_alternative_test3_normalized_shapenet_noEmptymasking_custom/lightning_logs/version_4/checkpoints/checkpoint-epoch=308-loss=0.000.ckpt"
-        # resume_from_checkpoint="/graphics/scratch2/staff/zakeri/train_logs/Transformer/flash_attention/with_optimized_latent_codes/full_dataset/overfitting/clean_code/regular_cat_fulldataset_alternative_test3_normalized_shapenet_noEmptymasking_custom/lightning_logs/version_5/checkpoints/checkpoint-epoch=988-loss=0.000.ckpt"
-        # resume_from_checkpoint="/graphics/scratch2/staff/zakeri/train_logs/Transformer/flash_attention/with_optimized_latent_codes/full_dataset/overfitting/clean_code/regular_cat_fulldataset_alternative_test3_normalized_shapenet_noEmptymasking_custom/lightning_logs/version_7/checkpoints/last.ckpt"
-        # resume_from_checkpoint ="/graphics/scratch2/staff/zakeri/train_logs/Transformer/flash_attention/with_optimized_latent_codes/full_dataset/overfitting/clean_code/regular_cat_fulldataset_alternative_test3_normalized_shapenet_noEmptymasking_custom/lightning_logs/version_8/checkpoints/last.ckpt"
+
     )
     trainer.fit(model)
     print("CUDA_VISIBLE_DEVICES", os.environ["CUDA_VISIBLE_DEVICES"])
-    # Custom masking----------------------------------------------------------------------
-    # v0-v3 are trained from scratch
-    # v4 is trained with initializiation from noEmptyMasking Transformer
-    # v5 is the resume of v4 only change is the gpus 0,1
-    # v6 is nothing
-    # v7 is the resumed of v5 for another 100 epochs with no scheduling and lr=1e-5
-    # v8 is the resume of v7 with 3gpus
-    # # # v9 it seems v8 is not fully convergeed we training it for another 200 epochs only
-
 
 if __name__ == "__main__":
 

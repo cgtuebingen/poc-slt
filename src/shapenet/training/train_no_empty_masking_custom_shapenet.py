@@ -1,37 +1,32 @@
 import sys
 from typing import Tuple, Any, Union
 
-sys.path.append("/home/zakeri/Documents/Codes/MyCodes/Proposal2/poc-slt-github/src/shapenet")
+sys.path.append("....")
 import torch
 import numpy as np
 
-# CUDA_LAUNCH_BLOCKING = 1
 from torch import nn
 import pytorch_lightning as pl
 
-from shapenet.dataset.train_dataset import ShapeNetcorev1NormalizedTrainWithNonOptimizedLatentCodes  # training
+from src.shapenet.dataset.shapenet_train_dataset import ShapeNetcorev1NormalizedTrainWithNonOptimizedLatentCodes  # training
 
-from shapenet.dataset.eval_dataset import ShapeNetcorev1NormalizedValWithNonOptimizedLatentCodes  # test
+from src.shapenet.dataset.shapenet_eval_dataset import ShapeNetcorev1NormalizedValWithNonOptimizedLatentCodes  # test
 
-from torch.utils.tensorboard import SummaryWriter
-from vae_main_v1_64_2x2x2_32cubestream import SDFtoSDF
+from src.p_vae.pvae import SDFtoSDF
 from transformers.optimization import get_cosine_schedule_with_warmup
 
-import transformer_visualizations as tv
-import loss_helper_fns as l_fn
-from utils import plot_march_fns as pmt_fns
-from utils import sub_voxel_related_fns as pp_fns
-from utils.positional_encoder_class import MYPositionalEncoder3D
+import src.utils.transformer_visualizations as tv
+import src.utils.loss_helper_fns as l_fn
+from src.utils import plot_march_fns as pmt_fns
+from src.utils import sub_voxel_related_fns as pp_fns
+from src.utils.positional_encoder_class import MYPositionalEncoder3D
 
-# ----------------------------------------------------------------------------------------------------------------------------------------------------
-# difffff
-# from Networks import skip_connection_5_2x2x2_noBNDecoder as sc
-from utils import encoder_decoder_loading as ed
-from utils import L1_loss_fns as L1_fn
-from utils import mask_huristic as gr_mask
-from utils.helper_fns import concatenate_for_given_dim
+from src.utils import encoder_decoder_loading as ed
+from src.utils import L1_loss_fns as L1_fn
+from src.utils import mask_huristic as gr_mask
+from src.utils.helper_fns import concatenate_for_given_dim
 
-from shapenet.training.train_no_empty_masking_shapenet import (
+from src.shapenet.training.train_no_empty_masking_shapenet import (
     TransformerSDFtoSDFShapenetNormalized,
 )
 # --------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -59,7 +54,9 @@ class TransformerSDFtoSDFShapenetNormalizedNoEmptyMaskingCustom(pl.LightningModu
         points_to_sample: int,
         query_number: int,
         examples_per_epoch: int,
-        transformer_checkpoint_path:str,
+        transformer_checkpoint_path: str,
+        num_warmup_steps: int,
+        num_training_steps: int,
 
     ):
         super(TransformerSDFtoSDFShapenetNormalizedNoEmptyMaskingCustom, self).__init__()
@@ -73,7 +70,7 @@ class TransformerSDFtoSDFShapenetNormalizedNoEmptyMaskingCustom(pl.LightningModu
             ).to(self.device)
             pre_trained_model.freeze()
             pre_trained_model.train(False)
-            # del SDFtoSDF
+
             self.fdecoder = ed.load_decoder_from_checkpoint(pre_trained_model, latent_dim)
             self.fdecoder.to(self.device)
 
@@ -85,12 +82,15 @@ class TransformerSDFtoSDFShapenetNormalizedNoEmptyMaskingCustom(pl.LightningModu
             del pre_trained_transformer_checkpoint
             print("\n regular transformer is initialized  from pretrained-transformer num_layer:", self.regular_transformer.num_layers, )
 
+        self.num_warmup_steps = num_warmup_steps
+        self.num_train_steps = num_training_steps
+
         self.l1_loss = nn.L1Loss(reduction="mean")
 
         number_of_sub_voxels = self.hparams.resolution // self.hparams.target_resolution
         self.number_of_sub_voxels = number_of_sub_voxels * number_of_sub_voxels * number_of_sub_voxels
 
-        self.my_selected_indices = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]  # this script
+        self.my_selected_indices = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]  # we only visualize these objects in tensorboard to save time
 
         # generator = torch.Generator(device=self.device)
         # generator.manual_seed(123)
@@ -169,17 +169,12 @@ class TransformerSDFtoSDFShapenetNormalizedNoEmptyMaskingCustom(pl.LightningModu
         # Prep for passing the masked_optimized_latent_codes to transformer--------------------------------------------------------
         # masked_optimized_latent_codes size : [B, SeqLen, 512, 2, 2, 2] --> [B, 64, 512, 2, 2, 2] --> reshape: [B, 64, 4096]
         masked_non_optimized_non_latent_codes_reshaped = masked_non_optimized_latent_codes.reshape([batch_size, self.number_of_sub_voxels, 8 * self.hparams.latent_dim])
-        # redundant mapping-------------------------------------------------------------------------------------------------------
         masked_non_optimized_non_latent_codes_reshaped_mapped = self.redundant_mapping(masked_non_optimized_non_latent_codes_reshaped)
         assert masked_non_optimized_non_latent_codes_reshaped.shape == masked_non_optimized_non_latent_codes_reshaped_mapped.shape
-        # Positional Embeder----------------------------------------------------------------------------------------------------
         z_positionally_encoded_re = self.positional_encoder_3d(shape_of_positions=[batch_size, 4, 4, 4, self.penc_channels])
-        # Adding latent code with positional embedding-----------------------------------------------------------------------------
         assert z_positionally_encoded_re.shape == masked_non_optimized_non_latent_codes_reshaped_mapped.shape
-        # CAT---------
         transformer_input_sequence = concatenate_for_given_dim(z_positionally_encoded_re, masked_non_optimized_non_latent_codes_reshaped_mapped, cat_dim=2)
 
-        # Transformer ----------------------------------------------------------------------------------------------------
         transformer_output_sequence = self.call_transformer_and_mapping_layers(transformer_input_sequence)
 
         return (transformer_output_sequence, masked_non_optimized_latent_codes)
@@ -189,21 +184,16 @@ class TransformerSDFtoSDFShapenetNormalizedNoEmptyMaskingCustom(pl.LightningModu
         masking_choice = np.random.choice(32, 1)
 
         empty_sub_voxels_bool, non_empty_sub_voxels_bool = pp_fns.extract_outside_and_non_outside_voxels(sub_voxels.clone(), self.number_of_sub_voxels, self.hparams.target_resolution)
-        # empty_indices = []
         if not torch.all(torch.any(non_empty_sub_voxels_bool, dim=1)):
             pair = {"object_index": object_indices.item(), "mesh_file_name": mesh_file_name}
             print("\nall voxels are empty", pair)
             breakpoint()
 
-        # generate masked bool------------------------------------------------------------------------------------------------------------
-        # 2st method:
         mask_all_bool = gr_mask.mask_heuristic(masking_choice, self.hparams.masking_ratio, batch_size,  self.number_of_sub_voxels, self.hparams.target_resolution, self.device)
 
         # just for return
         masked_bool = mask_all_bool.clone()
-        # actual non_masked_bool:
         non_masked_bool = torch.logical_and(non_empty_sub_voxels_bool, torch.logical_not(mask_all_bool))
-        # num_non_masked_bool = torch.count_nonzero(non_masked_bool, dim=1)
         return (mask_all_bool, masked_bool, non_masked_bool)
 
     def fwd(self, batch: list, train: bool) -> Tuple[dict, Tuple]:
@@ -217,11 +207,8 @@ class TransformerSDFtoSDFShapenetNormalizedNoEmptyMaskingCustom(pl.LightningModu
 
         # -----------
         sub_voxels = pp_fns.sub_divide_gt_and_normalize(gt_sdf_full_voxel.clone(), self.number_of_sub_voxels, self.hparams.target_resolution)
-        # generate empty and non-empty bool-----------------------------------------------------------------------------------------------
         mask_all_bool, masked_bool, non_masked_bool = self.generate_all_masking(sub_voxels, object_indices, mesh_file_name)
 
-        # FORWARD CAlL----------------------------------------------------------------------------------------------------------------------------
-        # if I want this to run , my val_batch and my train_batch need to be the same.
         (transformer_output_sequence_up, masked_non_optimized_latent_codes) = self.forward(sub_voxels, non_optimized_latent_codes, mask_all_bool)
         # for loss calculation
         non_optimized_latent_codes_reshaped = non_optimized_latent_codes.reshape([batch_size, self.number_of_sub_voxels, 8 * self.hparams.latent_dim])
@@ -327,6 +314,7 @@ class TransformerSDFtoSDFShapenetNormalizedNoEmptyMaskingCustom(pl.LightningModu
 
         print("\n setup: train_dataset len: ", len(self.train_dataset))
 
+        # by mistake, we called the eval/test dataset as val dataset, while actual validation dataset is the first 100 objects in train dataset
         self.val_dataset = ShapeNetcorev1NormalizedValWithNonOptimizedLatentCodes(
             self.hparams.mesh_path,
             self.hparams.points_to_sample,
@@ -360,7 +348,7 @@ class TransformerSDFtoSDFShapenetNormalizedNoEmptyMaskingCustom(pl.LightningModu
         )
 
     def configure_optimizers(self):
-        # we exclude fdecoer params from optimizer because it fucks them up, yes you head me!
+        # we exclude fdecoer params from optimizer!
         dont_train_those = []
         for k, _ in self.fdecoder.named_parameters():
             dont_train_those.append(k)
@@ -369,7 +357,6 @@ class TransformerSDFtoSDFShapenetNormalizedNoEmptyMaskingCustom(pl.LightningModu
         for k, v in self.named_parameters():
             if k not in dont_train_those:
                 params.append(v)
-        # print(params)
 
         optimizer = torch.optim.AdamW(
             params,
@@ -377,22 +364,17 @@ class TransformerSDFtoSDFShapenetNormalizedNoEmptyMaskingCustom(pl.LightningModu
             betas=(0.9, 0.99),
             weight_decay=0.05,
         )
-        # num_gpus = 1
-        # num_train_steps = len(self.train_dataset) // (self.hparams.batch_size * num_gpus) * self.trainer.max_epochs
-        # print("\n num_train_steps: ", num_train_steps)
-        # num_warmup_steps = int(self.hparams.warmup_ratio * num_train_steps)
-        # print("\n num_warmup_steps: ", num_warmup_steps)
-        #
-        # lr_scheduler = {
-        #     "scheduler": get_cosine_schedule_with_warmup(
-        #         optimizer,
-        #         num_warmup_steps=num_warmup_steps,
-        #         num_training_steps=num_train_steps,
-        #         num_cycles=0.5,
-        #     ),
-        #     "interval": "step",
-        #     "frequency": 1,
-        # }
-        return [optimizer]#, [lr_scheduler]
+
+        lr_scheduler = {
+            "scheduler": get_cosine_schedule_with_warmup(
+                optimizer,
+                num_warmup_steps=self.num_warmup_steps,
+                num_training_steps=self.num_train_steps,
+                num_cycles=0.5,
+            ),
+            "interval": "step",
+            "frequency": 1,
+        }
+        return [optimizer], [lr_scheduler]
 
 
