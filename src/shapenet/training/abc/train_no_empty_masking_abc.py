@@ -1,35 +1,25 @@
-import os
 import sys
 from typing import Tuple, Any, Union
-sys.path.append("/home/zakeri/Documents/Codes/MyCodes/Proposal2/SDF_VAE/")
+sys.path.append("....")
 import torch
-# if __name__ == "__main__":
-#     os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2"
 
-print("torch.cuda.device_count()", torch.cuda.device_count())
-print("torch.cuda.nccl.version()", torch.cuda.nccl.version())
-torch.cuda.empty_cache()
-torch.multiprocessing.set_sharing_strategy("file_system")
-from pytorch_lightning.strategies import DDPStrategy
+
 from torch import nn
 import pytorch_lightning as pl
-import argparse
-from Dataset.Dataset_Class_128fullmesh_ABC_with_NonOptimizedLatentCodes import ABCWITHNONOPTIMIZEDLATENTCODES
-from Dataset.Dataset_Class_128fullmesh_ABC_with_NonOptimizedLatentCodes_Val import ABCWITHNONOPTIMIZEDLATENTCODESVAL
-from torch.utils.tensorboard import SummaryWriter
-from Experiments.stream32cube.vae_main_v1_64_2x2x2_32cubestream import SDFtoSDF
+from src.shapenet.training.abc.dataset.abc_train_dataset import ABCWITHNONOPTIMIZEDLATENTCODES
+from src.shapenet.training.abc.dataset.abc_eval_dataset import ABCWITHNONOPTIMIZEDLATENTCODESVAL
+from src.p_vae.pvae import SDFtoSDF
 from transformers.optimization import get_cosine_schedule_with_warmup
-from pytorch_lightning.callbacks import LearningRateMonitor
-from Transformer.Attention.TransformerVisualizations import transformer_visualizations as tv
-from Transformer.Attention.TransformerLoss import loss_helper_fns as l_fn
-from Transformer.Attention.TransformerExperiments.clean_code.clean_code_common_files import plot_march_fns as pmt_fns
-from Transformer.Attention.TransformerExperiments.clean_code.clean_code_common_files import sub_voxel_related_fns as pp_fns
-from Transformer.Attention.TransformerExperiments.clean_code.clean_code_common_files.positional_encoder_class import MYPositionalEncoder3D
+from src.utils import transformer_visualizations as tv
+from src.utils import loss_helper_fns as l_fn
+from src.utils import plot_march_fns as pmt_fns
+from src.utils import sub_voxel_related_fns as pp_fns
+from src.utils.positional_encoder_class import MYPositionalEncoder3D
 # ----------------------------------------------------------------------------------------------------------------------------------------------------
-from Transformer.Attention.TransformerExperiments.clean_code.clean_code_common_files import encoder_decoder_loading as ed
-from Transformer.Attention.TransformerExperiments.clean_code.clean_code_common_files import L1_loss_fns as L1_fn
-from Transformer.Attention.TransformerExperiments.clean_code.clean_code_common_files import generate_random_mask as gr_mask
-from Transformer.Attention.TransformerExperiments.clean_code.clean_code_common_files.helper_fns import concatenate_for_given_dim
+from src.utils import encoder_decoder_loading as ed
+from src.utils import L1_loss_fns as L1_fn
+from src.utils import generate_random_mask as gr_mask
+from src.utils.helper_fns import concatenate_for_given_dim
 from Transformer.Attention.TransformerExperiments.clean_code.clean_code_experiments.fulldataset.completionstr2Experiments.Non_Optimized.regularTransformer_fulldataset_CAT_str2_32cube_withNonOptimizedLatentCodes_normalizedShapenet_NoEmptymasking_custom import TransformerSDFtoSDFShapenetNormalizedNoEmptyMaskingCustom
 
 # --------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -54,7 +44,10 @@ class TransformerSDFtoSDFABCOUTSIDE(pl.LightningModule):
         heads: int,
         pre_trained: bool,
         masking_ratio: torch.float32,
-        transformer_checkpoint_path:str,
+        transformer_checkpoint_path: str,
+        num_warmup_steps: int,
+        num_training_steps: int,
+
     ):
         super(TransformerSDFtoSDFABCOUTSIDE, self).__init__()
         self.save_hyperparameters()
@@ -92,8 +85,8 @@ class TransformerSDFtoSDFABCOUTSIDE(pl.LightningModule):
         self.constant_learnable_mask_tensors = torch.nn.Parameter(torch.randn([self.hparams.latent_dim, 2, 2, 2], dtype=torch.float32, device=self.device))  # , generator=generator
         self.constant_learnable_mask_tensors_for_empty_voxels = torch.nn.Parameter(torch.randn([self.hparams.latent_dim, 2, 2, 2], dtype=torch.float32, device=self.device))  # , generator=generator
 
-        self.mapping_down = nn.Linear(self.penc_channels + 8 * self.hparams.latent_dim, self.hparams.dim_size)  # FIXME check me
-        self.mapping_up = nn.Linear(self.hparams.dim_size, 8 * self.hparams.latent_dim)  # FIXME check me
+        self.mapping_down = nn.Linear(self.penc_channels + 8 * self.hparams.latent_dim, self.hparams.dim_size)
+        self.mapping_up = nn.Linear(self.hparams.dim_size, 8 * self.hparams.latent_dim)
         self.redundant_mapping = nn.Linear(8 * self.hparams.latent_dim, 8 * self.hparams.latent_dim)
 
     def calculate_losses(
@@ -161,39 +154,30 @@ class TransformerSDFtoSDFABCOUTSIDE(pl.LightningModule):
         # Prep for passing the masked_optimized_latent_codes to transformer--------------------------------------------------------
         # masked_optimized_latent_codes size : [B, SeqLen, 512, 2, 2, 2] --> [B, 64, 512, 2, 2, 2] --> reshape: [B, 64, 4096]
         masked_non_optimized_non_latent_codes_reshaped = masked_non_optimized_latent_codes.reshape([batch_size, self.number_of_sub_voxels, 8 * self.hparams.latent_dim])
-        # redundant mapping-------------------------------------------------------------------------------------------------------
         masked_non_optimized_non_latent_codes_reshaped_mapped = self.redundant_mapping(masked_non_optimized_non_latent_codes_reshaped)
         assert masked_non_optimized_non_latent_codes_reshaped.shape == masked_non_optimized_non_latent_codes_reshaped_mapped.shape
-        # Positional Embeder----------------------------------------------------------------------------------------------------
         z_positionally_encoded_re = self.positional_encoder_3d(shape_of_positions=[batch_size, 4, 4, 4, self.penc_channels])
-        # Adding latent code with positional embedding-----------------------------------------------------------------------------
         assert z_positionally_encoded_re.shape == masked_non_optimized_non_latent_codes_reshaped_mapped.shape
-        # CAT---------
         transformer_input_sequence = concatenate_for_given_dim(z_positionally_encoded_re, masked_non_optimized_non_latent_codes_reshaped_mapped, cat_dim=2)
 
-        # Transformer ----------------------------------------------------------------------------------------------------
         transformer_output_sequence = self.call_transformer_and_mapping_layers(transformer_input_sequence)
 
         return (transformer_output_sequence, masked_non_optimized_latent_codes)
+
     def generate_all_masking(self, sub_voxels: torch.Tensor, object_indices: torch.Tensor, mesh_file_name):
         batch_size = object_indices.shape[0]
 
         empty_sub_voxels_bool, non_empty_sub_voxels_bool = pp_fns.extract_outside_and_non_outside_voxels(sub_voxels.clone(), self.number_of_sub_voxels, self.hparams.target_resolution)
-        # empty_indices = []
         if not torch.all(torch.any(non_empty_sub_voxels_bool, dim=1)):
             pair = {"object_index": object_indices.item(), "mesh_file_name": mesh_file_name}
             print("\nall voxels are empty", pair)
             breakpoint()
 
-        # generate masked bool------------------------------------------------------------------------------------------------------------
-        # 2st method:
         mask_all_bool, num_mask_all = gr_mask.generate_random_mask_for_all(self.number_of_sub_voxels, batch_size, masking_ratio=self.hparams.masking_ratio)
 
         # just for return
         masked_bool = mask_all_bool.clone()
-        # actual non_masked_bool:
         non_masked_bool = torch.logical_and(non_empty_sub_voxels_bool, torch.logical_not(mask_all_bool))
-        # num_non_masked_bool = torch.count_nonzero(non_masked_bool, dim=1)
         return (mask_all_bool, masked_bool, non_masked_bool)
 
     def fwd(self, batch: list, train: bool) -> Tuple[dict,  Tuple]:
@@ -350,7 +334,7 @@ class TransformerSDFtoSDFABCOUTSIDE(pl.LightningModule):
         )
 
     def configure_optimizers(self):
-        # we exclude fdecoer params from optimizer because it fucks them up, yes you head me!
+        # we exclude fdecoer params from optimizer.
         dont_train_those = []
         for k, _ in self.fdecoder.named_parameters():
             dont_train_those.append(k)
@@ -359,7 +343,6 @@ class TransformerSDFtoSDFABCOUTSIDE(pl.LightningModule):
         for k, v in self.named_parameters():
             if k not in dont_train_those:
                 params.append(v)
-        # print(params)
 
         optimizer = torch.optim.AdamW(
             params,
@@ -367,17 +350,17 @@ class TransformerSDFtoSDFABCOUTSIDE(pl.LightningModule):
             betas=(0.9, 0.99),
             weight_decay=0.05,
         )
-        num_gpus = 3
-        num_train_steps = len(self.train_dataset) // (self.hparams.batch_size * num_gpus) * self.trainer.max_epochs
-        print("\n num_train_steps: ", num_train_steps)
-        num_warmup_steps = int(self.hparams.warmup_ratio * num_train_steps)
-        print("\n num_warmup_steps: ", num_warmup_steps)
+        # num_gpus = 3
+        # num_train_steps = len(self.train_dataset) // (self.hparams.batch_size * num_gpus) * self.trainer.max_epochs
+        # print("\n num_train_steps: ", num_train_steps)
+        # num_warmup_steps = int(self.hparams.warmup_ratio * num_train_steps)
+        # print("\n num_warmup_steps: ", num_warmup_steps)
 
         lr_scheduler = {
             "scheduler": get_cosine_schedule_with_warmup(
                 optimizer,
-                num_warmup_steps=num_warmup_steps,
-                num_training_steps=num_train_steps,
+                num_warmup_steps=self.num_warmup_steps,
+                num_training_steps=self.num_train_steps,
                 num_cycles=0.5,
             ),
             "interval": "step",
@@ -386,136 +369,3 @@ class TransformerSDFtoSDFABCOUTSIDE(pl.LightningModule):
         return [optimizer], [lr_scheduler]
 
 
-def main():
-    parser = argparse.ArgumentParser()
-    #  for SDFtoSDF
-    parser.add_argument("--latent_dim", default=512, type=int)  # 512
-    parser.add_argument("--resolution", default=128, type=int)
-    parser.add_argument("--target_resolution", default=32, type=int)
-    parser.add_argument("--batch_size", default=64, type=int)
-    parser.add_argument("--val_batch_size", default=1, type=int)
-    parser.add_argument("--learning_rate", default=2e-5, type=float)
-    parser.add_argument("--warmup_ratio", default=0.02, type=float)
-    # on Heracleum--------------------------------------------
-    # TODO Chaneme
-    # parser.add_argument(
-    #     "--train_lmdb_path",
-    #     default="/graphics/scratch2/staff/zakeri/LMDBs/ABC_128cube_100KLMDB_Train_cuda/_with_NonOptimizedLatentCodes/",  # dataset for full mesh with 128^3
-    #     type=str,
-    # )
-    #
-    # parser.add_argument(
-    #     "--val_lmdb_path",
-    #     default="/graphics/scratch2/staff/zakeri/LMDBs/ABC_128cube_5KLMDB_Test_cuda/_WithnonOptimizedLatentCodes/",  # dataset for full mesh with 128^3
-    #     type=str,
-    # )
-
-    # cluster-00
-    parser.add_argument(
-        "--train_lmdb_path",
-        default="/scratch/zakeri/ABC/ABC_128cube_100KLMDB_Train_cuda/_with_NonOptimizedLatentCodes/",  # dataset for full mesh with 128^3
-        type=str,
-    )
-
-    parser.add_argument(
-        "--val_lmdb_path",
-        default="/scratch/zakeri/ABC/ABC_128cube_5KLMDB_Test_cuda/_WithnonOptimizedLatentCodes/",  # dataset for full mesh with 128^3
-        type=str,
-    )
-
-    # parser.add_argument(
-    #     "--lmdb_path",
-    #     default="/graphics/scratch2/staff/zakeri/LMDBs/ABC_128cube_100KLMDB_combined/ABC_128cube_100KLMDB_combined_with_NonOptimizedLatentCodes/",  # dataset for full mesh with 128^3
-    #     type=str,
-    # )
-
-    parser.add_argument(
-        "--obj_dir",
-        default="/graphics/scratch/datasets/ABC/obj/",
-        type=str,
-    )
-
-    parser.add_argument("--value_range", default=1, type=int)
-
-    parser.add_argument(
-        "--vae_checkpoint_path",
-        default="/graphics/scratch2/staff/zakeri/train_logs/VAE/skip_connection/v403_64_2x2x2_noBNDecoder_shapenetcorev2_excluding_shapenetcorev1_validation_split/lightning_logs/version_0/checkpoints/saved/checkpoint-epoch=193-loss=0.000.ckpt/",
-        type=str,
-    )
-
-    parser.add_argument(
-        "--marching_cube_result_dir",
-        default="/graphics/scratch2/staff/zakeri/train_logs/Transformer/flash_attention/with_optimized_latent_codes/full_dataset/overfitting/clean_code/regular_cat_fulldataset_alternative_test3_ABC_noEmpty/marching_cube_results_0/",
-        type=str,
-    )
-    parser.add_argument(
-        "--transformer_checkpoint_path",
-        default="/graphics/scratch2/staff/zakeri/train_logs/Transformer/flash_attention/with_optimized_latent_codes/full_dataset/overfitting/clean_code/regular_cat_fulldataset_alternative_test3_normalized_shapenet_noEmptymasking_custom/lightning_logs/version_9/checkpoints/saved/checkpoint-epoch=2133-loss=0.000.ckpt",
-        type=str,
-    )
-    # hparams for transformer
-    parser.add_argument("--layers", default=20, type=int)  # layers: Number of transformer layers.
-    parser.add_argument("--dim_size", default=512 * 4, type=int)  # Dimensionality of latent space in transformer.
-    parser.add_argument("--heads", default=16, type=int)  # heads: Number of attention heads.
-    parser.add_argument("--pre_trained", default=True, type=bool)
-    parser.add_argument("--masking_ratio", default=0.40, type=float)
-
-    parser = pl.Trainer.add_argparse_args(parser)
-    args = parser.parse_args()
-    # write the checkpoints every 1000 steps
-    checkpoint_callback = pl.callbacks.ModelCheckpoint(
-        monitor="train_loss",
-        filename="checkpoint-{epoch:03d}-{loss:.3f}",
-        save_top_k=5,
-        mode="min",
-        verbose=True,
-        every_n_train_steps=500,
-    )
-    lr_Monitor = LearningRateMonitor(logging_interval="step")
-    model = TransformerSDFtoSDFABCOUTSIDE(
-        latent_dim=args.latent_dim,
-        resolution=args.resolution,
-        target_resolution=args.target_resolution,
-        batch_size=args.batch_size,
-        val_batch_size=args.val_batch_size,
-        learning_rate=args.learning_rate,
-        warmup_ratio=args.warmup_ratio,
-        train_lmdb_path=args.train_lmdb_path,
-        val_lmdb_path=args.val_lmdb_path,
-        obj_dir=args.obj_dir,
-        value_range=args.value_range,
-        vae_checkpoint_path=args.vae_checkpoint_path,
-        marching_cube_result_dir=args.marching_cube_result_dir,
-        layers=args.layers,
-        dim_size=args.dim_size,
-        heads=args.heads,
-        pre_trained=args.pre_trained,
-        masking_ratio=args.masking_ratio,
-        transformer_checkpoint_path=args.transformer_checkpoint_path,
-    )
-    # configure the pytorch-lightning trainer.
-    trainer = pl.Trainer.from_argparse_args(
-        args,
-        accelerator="gpu",
-        devices=-1,
-        num_nodes=1,
-        strategy=DDPStrategy(process_group_backend="NCCl"),  # NCCL tends to be unreliable for some reason
-        max_epochs=700,
-        log_every_n_steps=100,
-        detect_anomaly=True,
-        callbacks=[checkpoint_callback, lr_Monitor],
-        val_check_interval=10000,
-        check_val_every_n_epoch=None,
-        default_root_dir="/graphics/scratch2/staff/zakeri/train_logs/Transformer/flash_attention/with_optimized_latent_codes/full_dataset/overfitting/clean_code/regular_cat_fulldataset_alternative_test3_ABC_noEmpty/",
-        # precision="bf16",
-        # gradient_clip_val=0.5,
-        # resume_from_checkpoint=""
-
-    )
-    trainer.fit(model)
-    print("CUDA_VISIBLE_DEVICES", os.environ["CUDA_VISIBLE_DEVICES"])
-    # v0, v1 wrong
-
-
-# if __name__ == "__main__":
-#     main()
