@@ -7,6 +7,7 @@ import argparse
 from pytorch_lightning.callbacks import LearningRateMonitor
 import pytorch_lightning as pl
 from src.shapenet.training.abc.training.train_no_empty_masking_custom_abc import TransformerSDFtoSDFABCOUTSIDE
+
 def main():
     parser = argparse.ArgumentParser()
     #  for SDFtoSDF
@@ -62,6 +63,15 @@ def main():
     parser.add_argument("--pre_trained", default=True, type=bool)
     parser.add_argument("--masking_ratio", default=0.40, type=float)
 
+    # num_gpus = 3
+    # num_train_steps = len(train_dataset) // (hparams.batch_size * num_gpus) * trainer.max_epochs
+    # print("\n num_train_steps: ", num_train_steps)
+    # num_warmup_steps = int(warmup_ratio * num_train_steps)
+    # print("\n num_warmup_steps: ", num_warmup_steps)
+    #
+    parser.add_argument("--num_warmup_steps", required=True, type=int)
+    parser.add_argument("--num_training_steps",  required=True, type=int)
+
     parser = pl.Trainer.add_argparse_args(parser)
     args = parser.parse_args()
     # write the checkpoints every 1000 steps
@@ -94,6 +104,8 @@ def main():
         pre_trained=args.pre_trained,
         masking_ratio=args.masking_ratio,
         transformer_checkpoint_path=args.transformer_checkpoint_path,
+        num_warmup_steps=args.num_warmup_steps,
+        num_training_steps=args.num_training_steps
     )
     # configure the pytorch-lightning trainer.
     trainer = pl.Trainer.from_argparse_args(
@@ -118,4 +130,10 @@ def main():
 
 
 if __name__ == "__main__":
+    os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2"
+
+    print("torch.cuda.device_count()", torch.cuda.device_count())
+    print("torch.cuda.nccl.version()", torch.cuda.nccl.version())
+    torch.cuda.empty_cache()
+    torch.multiprocessing.set_sharing_strategy("file_system")
     main()

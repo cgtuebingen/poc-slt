@@ -70,6 +70,10 @@ class TransformerSDFtoSDFABCOUTSIDE(pl.LightningModule):
             self.regular_transformer = pre_trained_transformer_checkpoint.regular_transformer
             del pre_trained_transformer_checkpoint
             print("\n regular transformer is initialized  from pretrained-transformer num_layer:", self.regular_transformer.num_layers, )
+
+        self.num_warmup_steps = num_warmup_steps
+        self.num_training_steps = num_training_steps
+
         self.l1_loss = nn.L1Loss(reduction="mean")
 
         number_of_sub_voxels = self.hparams.resolution // self.hparams.target_resolution
