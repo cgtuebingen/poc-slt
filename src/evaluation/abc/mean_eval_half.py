@@ -2,10 +2,10 @@ import os
 import torch
 import sys
 
-sys.path.append("/home/zakeri/Documents/Codes/MyCodes/Proposal2/SDF_VAE/")
+sys.path.append("....")
 # from Transformer.Attention.TransformerEval.evaluation_utils.mesh_excluding_fns import extract_original_meshes_file_name_from_mesh_file_name, extract_remeshed_meshes_file_name_from_mesh_file_name
 
-from Transformer.Attention.TransformerEval.evaluation_analysis.common_file_ABC import (
+from src.evaluation.abc.common_file_ABC import (
     extract_files_with_given_extension_general,
     extract_broken_object_indices,
     extract_metric_results,
@@ -15,8 +15,7 @@ from Transformer.Attention.TransformerEval.evaluation_analysis.common_file_ABC i
 
 
 if __name__ == "__main__":
-    eval_dir = "/graphics/scratch2/staff/zakeri/train_logs/Transformer/flash_attention/with_optimized_latent_codes/full_dataset/overfitting/clean_code/regular_cat_fulldataset_alternative_test3_ABC_custom_noEmpty/lightning_logs/eval/ev0/front_bottom_right_octant/eval_dir/"
-
+    eval_dir = "/graphics/scratch2/staff/zakeri/train_logs/Transformer/flash_attention/with_optimized_latent_codes/full_dataset/overfitting/clean_code/regular_cat_fulldataset_alternative_test3_ABC_custom_noEmpty/lightning_logs/eval/ev0/bottom_half/eval_dir/"
     eval_file_list = extract_files_with_given_extension_general(eval_dir, '.pkl')
     print("\n eval_file_list len: ", len(eval_file_list))
 
@@ -34,5 +33,5 @@ if __name__ == "__main__":
     outname = os.path.join(eval_dir, "combined_pickles")
     combined_pickles = torch.load(outname)
     print()
-    extract_metric_results(eval_dir, "front_bottom_right_eval_results", broken_object_index_all_read, combined_pickles)
+    extract_metric_results(eval_dir, "bottom_half_eval_results", broken_object_index_all_read, combined_pickles)
     print()

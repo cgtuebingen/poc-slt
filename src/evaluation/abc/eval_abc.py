@@ -2,10 +2,7 @@ import sys
 from typing import Tuple, Any, Union
 sys.path.append("....")
 import torch
-
 from tqdm import tqdm
-
-
 from src.utils import sub_voxel_related_fns as pp_fns
 from src.utils.positional_encoder_class import MYPositionalEncoder3D
 # ----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -16,8 +13,11 @@ from src.training.train_no_empty_masking_custom_abc import (
 )
 from src.ABC_dataset_processing.calculate_bbx_ABC_and_normlize_them_to_shapenet_scale import normalize_ABC_compatible_with_shapenet
 from src.utils.custom_cutting import custom_mask
-from src.evaluation.abc.dataset import setup_dataset
-from src.evaluation.abc.common_fns import march_voxels_and_write_objs, evaluate, write_evaluation_result, march_gt_and_mask_only_and_write_objs
+from src.evaluation.abc.dataset_abc import setup_dataset
+from src.evaluation.abc.common_fns_abc import march_voxels_and_write_objs, evaluate, write_evaluation_result, march_gt_and_mask_only_and_write_objs
+
+from src.p_vae.pvae import SDFtoSDF
+
 # --------------------------------------------------------------------------------------------------------------------------------------------------------
 class EVALABC:
     def __init__(
@@ -92,7 +92,6 @@ class EVALABC:
             self.frozen_constant_learnable_mask_tensors = self.pre_trained_transformer.constant_learnable_mask_tensors
 
             # vae model
-            from Experiments.vae_main_newLMDB_v403_64_2x2x2_noBNDecoder import SDFtoSDF
 
             pre_trained_model_vae = SDFtoSDF.load_from_checkpoint(
                 self.vae_checkpoint_path,
@@ -275,8 +274,6 @@ class EVALABC:
                 "num_samples": self.num_samples,
 
             }
-
-
             march_gt_and_mask_only_and_write_objs(dict_arguments_for_vis, dict_arguments_of_variables, object_indices, self.fdecoder)
             dict_arguments_for_eval, collected_data_dict_for_plotting = march_voxels_and_write_objs(dict_arguments_for_vis, dict_arguments_of_variables, object_indices, self.fdecoder)
 

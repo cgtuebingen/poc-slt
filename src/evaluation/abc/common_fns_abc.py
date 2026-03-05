@@ -1,9 +1,9 @@
 import os
 import torch
 from typing import Tuple
-from pycu3d.test.evaluate_all import EVALALLMETRICS
-from Transformer.Attention.TransformerExperiments.clean_code.clean_code_common_files import plot_march_fns as pmt_fns
-from Visualization.m_cube_fns import make_mcubes_from_voxels_obj_for_pad
+from src.pycu3d.test.evaluate_all import EVALALLMETRICS
+from src.utils import plot_march_fns as pmt_fns
+from src.utils.m_cube_fns import make_mcubes_from_voxels_obj_for_pad
 
 
 def evaluate(dict_arguments_for_eval: dict, dict_arguments_of_variables: dict, collected_data_dict_for_plotting: dict) -> dict:
