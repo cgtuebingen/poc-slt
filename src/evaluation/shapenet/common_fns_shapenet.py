@@ -18,7 +18,6 @@ def evaluate(dict_arguments_for_eval: dict, dict_arguments_of_variables: dict, c
     completed_obj = dict_arguments_for_eval["Transformer_output_file_name_obj"]
     gt_obj = dict_arguments_for_eval["True_gt_sdf_file_name_obj"]
 
-
     # extract scales:
     hausdorff_scale = dict_arguments_of_variables["hausdorff_scale"]
     chamfer_scale = dict_arguments_of_variables["chamfer_scale"]
@@ -49,7 +48,7 @@ def evaluate(dict_arguments_for_eval: dict, dict_arguments_of_variables: dict, c
         chamfer = chamfer * chamfer_scale
         # print("\n chamfer:", chamfer)
 
-        fscore_one_percent = eval_obj.eval_fscore_pc_cud3d(completed_pc, gt_pc, thres=0.02) # my one percent=0.02(my side length is 2), shapenet diagonal len is 1
+        fscore_one_percent = eval_obj.eval_fscore_pc_cud3d(completed_pc, gt_pc, thres=0.02)  # my one percent=0.02(my side length is 2), shapenet diagonal len is 1
         # print("\n fscore1%:", fscore_one_percent)
         if torch.isnan(torch.tensor(fscore_one_percent)) or torch.isnan(torch.tensor(fscore_one_percent)):
             fscore_one_percent = -1

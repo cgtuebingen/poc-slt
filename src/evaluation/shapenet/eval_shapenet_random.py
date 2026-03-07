@@ -5,7 +5,7 @@ from tqdm import tqdm
 
 import torch.utils
 from src.training import (
-    train_no_empty_masking_custom_shapenet_v2 as rtfc,
+    train_no_empty_masking_custom_shapenet as rtfc,
 )
 from src.utils import encoder_decoder_loading as ed
 from src.utils import generate_random_mask as gr_mask
@@ -19,10 +19,11 @@ from src.evaluation.shapenet.common_fns_shapenet import evaluate, march_voxels_a
 from src.evaluation.shapenet.dataset_NonOptimized import setup_dataset
 # vae model
 from src.p_vae.pvae import SDFtoSDF
+from src.utils.shapenetcorev2_prep_fns import map_folder_to_label
 
 
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-class EVALShapenetVal:
+class EVALShapenet:
     def __init__(
         self,
         latent_dim: int,
@@ -269,7 +270,6 @@ class EVALShapenetVal:
             }
 
             # get label using the folder name
-            from Mesh_Preparation.shapenetcorev2_prep_fns import map_folder_to_label
             label = map_folder_to_label(folder_name)
 
             dict_arguments_of_variables = {
