@@ -1,21 +1,21 @@
 import os
 import sys
 
-sys.path.append("..")
+sys.path.append("....")
 
 import torch
 from torch import nn
 import pytorch_lightning as pl
 import numpy as np
-import p_vae.distribution
-import p_vae.vae_loss
-from utils.plot_voxel import plot_v
+import src.p_vae.distribution
+import src.p_vae.vae_loss
+from src.utils.plot_voxel import plot_v
 
-import p_vae.pvae_model as sc
-import p_vae.pvae_dataset as dt_new
+import src.p_vae.pvae_model as sc
+import src.p_vae.pvae_dataset as dt_new
 
 from torch.optim.lr_scheduler import CosineAnnealingLR
-import p_vae.normalizations as norm
+import src.p_vae.normalizations as norm
 
 
 # -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -44,7 +44,7 @@ class SDFtoSDF(pl.LightningModule):
         self.decoder = sc.VSDecoder(latent_dim)  # 2 * 2 * 2
 
         self.l1 = nn.L1Loss()
-        self.vae_loss = p_vae.vae_loss.VAELoss()
+        self.vae_loss = src.p_vae.vae_loss.VAELoss()
 
     def forward(self, x_in: torch.Tensor, mode: str) -> torch.Tensor:
         x_encoded = self.encoder(x_in)

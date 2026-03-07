@@ -8,9 +8,9 @@ import numpy as np
 from torch import nn
 import pytorch_lightning as pl
 
-from src.shapenet.dataset.shapenet_train_dataset import ShapeNetcorev1NormalizedTrainWithNonOptimizedLatentCodes  # training
+from src.dataset.shapenet_train_dataset import ShapeNetcorev1NormalizedTrainWithNonOptimizedLatentCodes  # training
 
-from src.shapenet.dataset.shapenet_eval_dataset import ShapeNetcorev1NormalizedValWithNonOptimizedLatentCodes  # test
+from src.dataset.shapenet_eval_dataset import ShapeNetcorev1NormalizedValWithNonOptimizedLatentCodes  # test
 
 from src.p_vae.pvae import SDFtoSDF
 from transformers.optimization import get_cosine_schedule_with_warmup
@@ -26,7 +26,7 @@ from src.utils import L1_loss_fns as L1_fn
 from src.utils import mask_huristic as gr_mask
 from src.utils.helper_fns import concatenate_for_given_dim
 
-from src.shapenet.training.train_no_empty_masking_shapenet import (
+from src.training.train_no_empty_masking_shapenet import (
     TransformerSDFtoSDFShapenetNormalized,
 )
 # --------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -55,8 +55,8 @@ class TransformerSDFtoSDFShapenetNormalizedNoEmptyMaskingCustom(pl.LightningModu
         query_number: int,
         examples_per_epoch: int,
         transformer_checkpoint_path: str,
-        num_warmup_steps: int,
-        num_training_steps: int,
+        num_warmup_steps: int = 1000,
+        num_training_steps: int = 1000000,
 
     ):
         super(TransformerSDFtoSDFShapenetNormalizedNoEmptyMaskingCustom, self).__init__()

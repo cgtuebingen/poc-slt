@@ -4,8 +4,8 @@ sys.path.append("....")
 import torch
 from torch import nn
 import pytorch_lightning as pl
-from src.shapenet.dataset.shapenet_train_dataset import ShapeNetcorev1NormalizedTrainWithNonOptimizedLatentCodes  # training
-from src.shapenet.dataset.shapenet_eval_dataset import ShapeNetcorev1NormalizedValWithNonOptimizedLatentCodes  # eval
+from src.dataset.shapenet_train_dataset import ShapeNetcorev1NormalizedTrainWithNonOptimizedLatentCodes  # training
+from src.dataset.shapenet_eval_dataset import ShapeNetcorev1NormalizedValWithNonOptimizedLatentCodes  # eval
 from src.p_vae.pvae import SDFtoSDF
 from transformers.optimization import get_cosine_schedule_with_warmup
 from src.utils import transformer_visualizations as tv
@@ -36,7 +36,7 @@ class TransformerSDFtoSDFShapenetNormalized(pl.LightningModule):
         val_lmdb_path: str,
         mesh_path: str,
         value_range: int,
-        checkpoint_path: str,
+        vae_checkpoint_path: str,
         marching_cube_result_dir: str,
         layers: int,
         dim_size: int,
@@ -46,9 +46,9 @@ class TransformerSDFtoSDFShapenetNormalized(pl.LightningModule):
         points_to_sample: int,
         query_number: int,
         examples_per_epoch: int,
-        num_warmup_steps: int,
-        num_training_steps: int,
-
+        num_warmup_steps: int = None,  # not defined in checkpoint
+        num_training_steps: int = None,  # not defined in checkpoint
+        **kwargs: dict  # unused
     ):
         super(TransformerSDFtoSDFShapenetNormalized, self).__init__()
         self.save_hyperparameters()
@@ -57,7 +57,7 @@ class TransformerSDFtoSDFShapenetNormalized(pl.LightningModule):
             print("\n pre_trained: ", pre_trained)
 
             pre_trained_model = SDFtoSDF.load_from_checkpoint(
-                checkpoint_path,
+                vae_checkpoint_path, vae_checkpoint_path=vae_checkpoint_path
             ).to(self.device)
             pre_trained_model.freeze()
             pre_trained_model.train(False)

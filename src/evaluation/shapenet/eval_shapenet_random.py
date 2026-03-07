@@ -1,23 +1,26 @@
 import sys
-sys.path.append("/home/zakeri/Documents/Codes/MyCodes/Proposal2/SDF_VAE/")
+sys.path.append("....")
 import torch
 from tqdm import tqdm
-print("torch.cuda.device_count()", torch.cuda.device_count())
-print("torch.cuda.nccl.version()", torch.cuda.nccl.version())
-torch.cuda.empty_cache()
-torch.multiprocessing.set_sharing_strategy("file_system")
+
 import torch.utils
-from Transformer.Attention.TransformerExperiments.clean_code.clean_code_experiments.fulldataset.completionstr2Experiments.Non_Optimized import (
-    regularTransformer_fulldataset_CAT_str2_32cube_withNonOptimizedLatentCodes_normalizedShapenet_NoEmptymasking_custom as rtfc,
+from src.training import (
+    train_no_empty_masking_custom_shapenet_v2 as rtfc,
 )
-from Transformer.Attention.TransformerExperiments.clean_code.clean_code_common_files import encoder_decoder_loading as ed
-from Transformer.Attention.TransformerExperiments.clean_code.clean_code_common_files import generate_random_mask as gr_mask
+from src.utils import encoder_decoder_loading as ed
+from src.utils import generate_random_mask as gr_mask
 from typing import Tuple, Any, Union
-from Transformer.Attention.TransformerExperiments.clean_code.clean_code_common_files.helper_fns import concatenate_for_given_dim
-from Transformer.Attention.TransformerExperiments.clean_code.clean_code_common_files.positional_encoder_class import MYPositionalEncoder3D
-from Transformer.Attention.TransformerExperiments.clean_code.clean_code_common_files import sub_voxel_related_fns as pp_fns
-from Transformer.Attention.TransformerEval.evaluation_utils.common_extract_bbx_with_mesh_file_name import calculate_metric_scale_for_mesh_file_name
-from Transformer.Attention.TransformerEval_revised.evaluation_approaches.Shapenet_normalized.Trans_NonOptimized.common_fns import evaluate, march_voxels_and_write_objs, write_evaluation_result, march_gt_and_mask_only_and_write_objs
+from src.utils.helper_fns import concatenate_for_given_dim
+from src.utils.positional_encoder_class import MYPositionalEncoder3D
+from src.utils import sub_voxel_related_fns as pp_fns
+from src.evaluation.shapenet.common_extract_bbx_with_mesh_file_name import calculate_metric_scale_for_mesh_file_name
+from src.evaluation.shapenet.common_fns_shapenet import evaluate, march_voxels_and_write_objs, write_evaluation_result, march_gt_and_mask_only_and_write_objs
+
+from src.evaluation.shapenet.dataset_NonOptimized import setup_dataset
+# vae model
+from src.p_vae.pvae import SDFtoSDF
+
+
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 class EVALShapenetVal:
     def __init__(
@@ -67,11 +70,10 @@ class EVALShapenetVal:
         self.device = device
         self.num_samples = num_samples
 
-        from Transformer.Attention.TransformerEval_revised.evaluation_approaches.Shapenet_normalized.Trans_NonOptimized.dataset_NonOptimized import setup_dataset
         self.val_dataset = setup_dataset(mesh_path, points_to_sample, query_number, lmdb_path, value_range, resolution, examples_per_epoch)
 
         if self.pre_trained:
-            self.pre_trained_transformer = rtfc.TransformerSDFtoSDFShapenetNormalizedNoEmptyMaskingCustom.load_from_checkpoint(self.checkpoint_path).to(self.device)
+            self.pre_trained_transformer = rtfc.TransformerSDFtoSDFShapenetNormalizedNoEmptyMaskingCustom.load_from_checkpoint(checkpoint_path=self.checkpoint_path, vae_checkpoint_path=self.vae_checkpoint_path, transformer_checkpoint_path=self.checkpoint_path).to(self.device)
             self.pre_trained_transformer.eval()
             self.pre_trained_transformer.train(False)
 
@@ -93,15 +95,11 @@ class EVALShapenetVal:
 
             self.frozen_constant_learnable_mask_tensors = self.pre_trained_transformer.constant_learnable_mask_tensors
 
-            # vae model
-            from Experiments.stream32cube.vae_main_v1_64_2x2x2_32cubestream import SDFtoSDF
-
             pre_trained_model_vae = SDFtoSDF.load_from_checkpoint(
                 self.vae_checkpoint_path,
             ).to(self.device)
             pre_trained_model_vae.eval()
             pre_trained_model_vae.train(False)
-            del SDFtoSDF
 
             self.fdecoder = ed.load_decoder_from_checkpoint(pre_trained_model_vae, latent_dim)
 

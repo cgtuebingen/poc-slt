@@ -1,7 +1,7 @@
 import torch
 from typing import Tuple
 from torchtyping import TensorType
-import p_vae.distribution
+import src.p_vae.distribution
 
 
 def hinge_d_loss(logits_real, logits_fake):
@@ -26,7 +26,7 @@ class VAELoss(torch.nn.Module):
         pred_sequence: TensorType[
             "Batch", "BlockDuration", "BlockHeight", "BlockWidth", "RGB"
         ],
-        posterior: p_vae.distribution.Distribution,
+        posterior: src.p_vae.distribution.Distribution,
         global_step: int,
         log_prefix: str = "training",
     ) -> Tuple[TensorType[1], dict["str", "torch.Tensor"]]:

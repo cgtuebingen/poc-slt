@@ -1,8 +1,10 @@
 import argparse
 import os
 import sys
+import torch
+sys.path.append("....")
+from src.evaluation.shapenet.eval_shapenet_random import EVALShapenetVal
 
-sys.path.append("/home/zakeri/Documents/Codes/MyCodes/Proposal2/SDF_VAE/")
 
 def main_half(eval_mode_dir: str, obj_dir: str, common_obj_dir: str, checkpoint_mode_path: str):
     parser = argparse.ArgumentParser()
@@ -24,7 +26,7 @@ def main_half(eval_mode_dir: str, obj_dir: str, common_obj_dir: str, checkpoint_
 
     parser.add_argument(
         "--vae_checkpoint_path",
-        default="/graphics/scratch2/staff/zakeri/train_logs/VAE/skip_connection/v403_64_2x2x2_noBNDecoder_shapenetcorev2_excluding_shapenetcorev1_validation_split/lightning_logs/version_0/checkpoints/saved/checkpoint-epoch=193-loss=0.000.ckpt/",
+        default="/graphics/scratch3/staff/zakeri/scratch2_coppied/train_logs/VAE/skip_connection/v403_64_2x2x2_noBNDecoder_shapenetcorev2_excluding_shapenetcorev1_validation_split/lightning_logs/version_0/checkpoints/saved/checkpoint-epoch=193-loss=0.000.ckpt",
         type=str,
     )
 
@@ -46,8 +48,8 @@ def main_half(eval_mode_dir: str, obj_dir: str, common_obj_dir: str, checkpoint_
     parser.add_argument("--device", default="cuda:0", type=str)
     parser.add_argument("--num_samples", default=1000000, type=int)
 
-    parser.add_argument("--min_range", type=int, required=True)
-    parser.add_argument("--max_range", type=int, required=True)
+    parser.add_argument("--min_range", type=int, default=0)
+    parser.add_argument("--max_range", type=int, default=10)
 
     parser.add_argument(
         "--eval_dir",
@@ -73,7 +75,6 @@ def main_half(eval_mode_dir: str, obj_dir: str, common_obj_dir: str, checkpoint_
     )
 
     args = parser.parse_args()
-    from Transformer.Attention.TransformerEval_revised.evaluation_approaches.Shapenet_normalized.Trans_NonOptimized.configs.custom_no_empty_masking.eval_shapenet_random import EVALShapenetVal
 
     eval_obj = EVALShapenetVal(
         latent_dim=args.latent_dim,
@@ -106,11 +107,16 @@ def main_half(eval_mode_dir: str, obj_dir: str, common_obj_dir: str, checkpoint_
 
 if __name__ == "__main__":
 
-    os.environ["CUDA_VISIBLE_DEVICES"] = "1" # TODO CHANE ME
+    os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
-    version_root = "/graphics/scratch2/staff/zakeri/train_logs/Transformer/flash_attention/with_optimized_latent_codes/full_dataset/overfitting/clean_code/regular_cat_fulldataset_alternative_test3_normalized_shapenet_noEmptymasking_custom/lightning_logs/version_9/"
+    print("torch.cuda.device_count()", torch.cuda.device_count())
+    print("torch.cuda.nccl.version()", torch.cuda.nccl.version())
+    torch.cuda.empty_cache()
+    torch.multiprocessing.set_sharing_strategy("file_system")
 
-    eval_root = os.path.join("/graphics/scratch2/staff/zakeri/train_logs/Transformer/flash_attention/with_optimized_latent_codes/full_dataset/overfitting/clean_code/regular_cat_fulldataset_alternative_test3_normalized_shapenet_noEmptymasking_custom/", "eval")
+    version_root = "/graphics/scratch3/staff/zakeri/scratch2_coppied/train_logs/Transformer/flash_attention/with_optimized_latent_codes/full_dataset/overfitting/clean_code/regular_cat_fulldataset_alternative_test3_normalized_shapenet_noEmptymasking_custom/lightning_logs/version_9/"
+
+    eval_root = os.path.join("/graphics/scratch2/staff/zakeri/tmp/", "eval")
     checkpoint_root = os.path.join(version_root, "checkpoints")
 
     eval_mode_dir = os.path.join(eval_root, "ev0", "MR0.50/")
@@ -120,6 +126,6 @@ if __name__ == "__main__":
     common_obj_dir = os.path.join(eval_mode_dir, 'common_obj_dir/')
 
     # used for evaluation of transformer
-    checkpoint_mode_path = os.path.join(checkpoint_root, "saved/" + "checkpoint-epoch=2133-loss=0.000.ckpt") # TODO CHANE ME
+    checkpoint_mode_path = os.path.join(checkpoint_root, "saved", "checkpoint-epoch=2133-loss=0.000.ckpt") # TODO CHANE ME
 
     main_half(eval_dir, obj_dir, common_obj_dir, checkpoint_mode_path)
