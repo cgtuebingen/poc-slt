@@ -6,8 +6,8 @@ import torch
 
 from torch import nn
 import pytorch_lightning as pl
-from src.shapenet.training.abc.dataset.abc_train_dataset import ABCWITHNONOPTIMIZEDLATENTCODES
-from src.shapenet.training.abc.dataset.abc_eval_dataset import ABCWITHNONOPTIMIZEDLATENTCODESVAL
+from src.dataset.abc_train_dataset import ABCWITHNONOPTIMIZEDLATENTCODES
+from src.dataset.abc_eval_dataset import ABCWITHNONOPTIMIZEDLATENTCODESVAL
 from src.p_vae.pvae import SDFtoSDF
 from transformers.optimization import get_cosine_schedule_with_warmup
 from src.utils import transformer_visualizations as tv
@@ -20,7 +20,7 @@ from src.utils import encoder_decoder_loading as ed
 from src.utils import L1_loss_fns as L1_fn
 from src.utils import generate_random_mask as gr_mask
 from src.utils.helper_fns import concatenate_for_given_dim
-from Transformer.Attention.TransformerExperiments.clean_code.clean_code_experiments.fulldataset.completionstr2Experiments.Non_Optimized.regularTransformer_fulldataset_CAT_str2_32cube_withNonOptimizedLatentCodes_normalizedShapenet_NoEmptymasking_custom import TransformerSDFtoSDFShapenetNormalizedNoEmptyMaskingCustom
+from src.training.train_no_empty_masking_custom_shapenet import TransformerSDFtoSDFShapenetNormalizedNoEmptyMaskingCustom
 
 # --------------------------------------------------------------------------------------------------------------------------------------------------------
 class TransformerSDFtoSDFABCOUTSIDE(pl.LightningModule):
@@ -45,8 +45,8 @@ class TransformerSDFtoSDFABCOUTSIDE(pl.LightningModule):
         pre_trained: bool,
         masking_ratio: torch.float32,
         transformer_checkpoint_path: str,
-        num_warmup_steps: int,
-        num_training_steps: int,
+        num_warmup_steps: int = 1000,
+        num_training_steps: int = 1000000,
 
     ):
         super(TransformerSDFtoSDFABCOUTSIDE, self).__init__()
@@ -60,12 +60,12 @@ class TransformerSDFtoSDFABCOUTSIDE(pl.LightningModule):
             ).to(self.device)
             pre_trained_model.freeze()
             pre_trained_model.train(False)
-            # del SDFtoSDF
+
             self.fdecoder = ed.load_decoder_from_checkpoint(pre_trained_model, latent_dim)
             self.fdecoder.to(self.device)
 
             pre_trained_transformer_checkpoint = TransformerSDFtoSDFShapenetNormalizedNoEmptyMaskingCustom.load_from_checkpoint(
-                self.hparams.transformer_checkpoint_path,
+                self.hparams.transformer_checkpoint_path, vae_checkpoint_path=vae_checkpoint_path
             ).to(self.device)
             self.regular_transformer = pre_trained_transformer_checkpoint.regular_transformer
             del pre_trained_transformer_checkpoint

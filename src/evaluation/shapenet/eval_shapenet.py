@@ -286,7 +286,7 @@ class EVALShapenet:
                 "common_obj_dir": self.common_obj_dir,
             }
 
-            # march_gt_and_mask_only_and_write_objs(dict_arguments_for_vis, dict_arguments_of_variables, object_indices, self.fdecoder)
+            march_gt_and_mask_only_and_write_objs(dict_arguments_for_vis, dict_arguments_of_variables, object_indices, self.fdecoder)
             dict_arguments_for_eval, collected_data_dict_for_plotting = march_voxels_and_write_objs(dict_arguments_for_vis, dict_arguments_of_variables, object_indices, self.fdecoder)
 
             eval_results = evaluate(dict_arguments_for_eval, dict_arguments_of_variables, collected_data_dict_for_plotting)

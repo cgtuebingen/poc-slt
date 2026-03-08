@@ -107,7 +107,7 @@ def main_half(eval_mode_dir: str, obj_dir: str, common_obj_dir: str, checkpoint_
 
 if __name__ == "__main__":
 
-    os.environ["CUDA_VISIBLE_DEVICES"] = "0"
+    os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 
     print("torch.cuda.device_count()", torch.cuda.device_count())
     print("torch.cuda.nccl.version()", torch.cuda.nccl.version())

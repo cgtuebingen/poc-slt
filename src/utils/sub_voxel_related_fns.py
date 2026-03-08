@@ -1,6 +1,6 @@
 import torch
 from typing import Tuple
-from Mesh_Preparation.subvolume_devision import (
+from src.utils.subvolume_devision import (
     subvdivide_voxel_with_batch,
     extract_empty_sub_voxel_indices_from_voxel,
 extract_outside_sub_voxel_indices_from_voxel

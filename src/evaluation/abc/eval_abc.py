@@ -69,7 +69,7 @@ class EVALABC:
         self.mesh_file_name_to_bbx = torch.load(ABC_mesh_file_name_to_bbx_path)
 
         if self.pre_trained:
-            self.pre_trained_transformer = TransformerSDFtoSDFABCOUTSIDE.load_from_checkpoint(self.checkpoint_path).to(self.device)
+            self.pre_trained_transformer = TransformerSDFtoSDFABCOUTSIDE.load_from_checkpoint(checkpoint_path=self.checkpoint_path, vae_checkpoint_path=self.vae_checkpoint_path, transformer_checkpoint_path=self.checkpoint_path).to(self.device)
             self.pre_trained_transformer.eval()
             self.pre_trained_transformer.train(False)
 
@@ -94,11 +94,11 @@ class EVALABC:
             # vae model
 
             pre_trained_model_vae = SDFtoSDF.load_from_checkpoint(
-                self.vae_checkpoint_path,
+                self.vae_checkpoint_path
             ).to(self.device)
             pre_trained_model_vae.eval()
             pre_trained_model_vae.train(False)
-            del SDFtoSDF
+
             self.fencoder = ed.load_encoder_from_checkpoint(pre_trained_model_vae, latent_dim)
             self.fdecoder = ed.load_decoder_from_checkpoint(pre_trained_model_vae, latent_dim)
 
