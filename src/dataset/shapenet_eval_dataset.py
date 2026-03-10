@@ -6,9 +6,7 @@ import lmdb
 import msgpack
 import msgpack_numpy as m
 m.patch()
-# from tqdm.auto import tqdm
 import torch
-# import argparse
 import numpy as np
 class ShapeNetcorev1NormalizedValWithNonOptimizedLatentCodes(pl.LightningDataModule):
     def __init__(self, mesh_path: str, points_to_sample: int, query_number: int, lmdb_path: str, value_range: int = 1, resolution: int = 128,
