@@ -1,6 +1,4 @@
 import os
-import sys
-sys.path.append("....")
 import argparse
 import torch
 from src.evaluation.abc.eval_abc import EVALABC
@@ -34,6 +32,7 @@ def main_half(eval_mode_dir: str, obj_dir: str, common_obj_dir: str, checkpoint_
     parser.add_argument("--pre_trained", default=True, type=bool)
 
     # eval
+    # for octant used in the paper: "front-bottom-right"
     parser.add_argument("--custom_mask_mode", default="bottom-half", type=str, required=False)
     parser.add_argument("--device", default="cuda:0", type=str)
     parser.add_argument("--num_samples", default=1000000, type=int)
@@ -88,9 +87,11 @@ def main_half(eval_mode_dir: str, obj_dir: str, common_obj_dir: str, checkpoint_
 
     eval_obj.evaluate_val()
 
+
 if __name__ == "__main__":
 
-    os.environ["CUDA_VISIBLE_DEVICES"] = "1"
+    os.environ["CUDA_VISIBLE_DEVICES"] = "2"
+
     print("torch.cuda.device_count()", torch.cuda.device_count())
     print("torch.cuda.nccl.version()", torch.cuda.nccl.version())
     torch.cuda.empty_cache()

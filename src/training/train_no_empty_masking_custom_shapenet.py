@@ -75,7 +75,9 @@ class TransformerSDFtoSDFShapenetNormalizedNoEmptyMaskingCustom(pl.LightningModu
 
             # initialize the transformer from pretrained transformer trained with random-masking AND No empty masking
             pre_trained_transformer_checkpoint = TransformerSDFtoSDFShapenetNormalized.load_from_checkpoint(
-                transformer_checkpoint_path, vae_checkpoint_path=vae_checkpoint_path, transformer_checkpoint_path=transformer_checkpoint_path
+                transformer_checkpoint_path, vae_checkpoint_path=vae_checkpoint_path, transformer_checkpoint_path=transformer_checkpoint_path,
+                **{'mesh_path': None, 'points_to_sample': None, 'query_number': None, 'examples_per_epoch': None},
+                map_location='cpu', strict=False
             ).to(self.device)
             self.regular_transformer = pre_trained_transformer_checkpoint.regular_transformer
             del pre_trained_transformer_checkpoint

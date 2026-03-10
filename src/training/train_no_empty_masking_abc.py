@@ -65,7 +65,9 @@ class TransformerSDFtoSDFABCOUTSIDE(pl.LightningModule):
             self.fdecoder.to(self.device)
 
             pre_trained_transformer_checkpoint = TransformerSDFtoSDFShapenetNormalizedNoEmptyMaskingCustom.load_from_checkpoint(
-                self.hparams.transformer_checkpoint_path, vae_checkpoint_path=vae_checkpoint_path
+                self.hparams.transformer_checkpoint_path, vae_checkpoint_path=vae_checkpoint_path, transformer_checkpoint_path=self.hparams.transformer_checkpoint_path,
+                **{'mesh_path': None, 'points_to_sample': None, 'query_number': None, 'examples_per_epoch': None},
+                map_location='cpu', strict=False
             ).to(self.device)
             self.regular_transformer = pre_trained_transformer_checkpoint.regular_transformer
             del pre_trained_transformer_checkpoint

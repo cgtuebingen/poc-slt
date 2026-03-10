@@ -1,6 +1,4 @@
-import sys
 from typing import Tuple, Any, Union
-sys.path.append("....")
 import torch
 from tqdm import tqdm
 from src.utils import sub_voxel_related_fns as pp_fns
