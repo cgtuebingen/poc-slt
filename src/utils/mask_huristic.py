@@ -2,14 +2,11 @@
 # every case of this heuristic is chosen randomly in each training epoch
 # it is a mix of random masking given a masking ratio and custom cut
 
-import os
 import sys
-from typing import Tuple, Any, Union
-import numpy as np
 from einops import rearrange
-sys.path.append("/home/zakeri/Documents/Codes/MyCodes/Proposal2/SDF_VAE/")
+sys.path.append("....")
 import torch
-from Transformer.Attention.TransformerExperiments.clean_code.clean_code_common_files import generate_random_mask as gr_mask
+from src.utils import generate_random_mask as gr_mask
 
 
 def mask_heuristic(masking_choice: int, masking_ratio: torch.float32, batch_size, number_of_sub_voxels, target_resolution, given_device):

@@ -1,5 +1,5 @@
 import torch
-from typing import  Any, Union
+from typing import Any, Union
 
 
 def weight_losses(

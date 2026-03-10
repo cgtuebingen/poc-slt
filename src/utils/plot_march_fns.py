@@ -1,10 +1,10 @@
 import torch
 from typing import Any
 
-from Mesh_Preparation.subvolume_devision import (
+from src.utils.subvolume_devision import (
     collect_sub_voxels_to_voxel_with_batch,
 )
-from Visualization.m_cube_fns import marche_the_cube
+from src.utils.m_cube_fns import marche_the_cube
 
 
 def generate_data_for_plotting(dict_arguments_for_vis: dict, dict_arguments_of_variables: dict, fdecoder) -> dict:

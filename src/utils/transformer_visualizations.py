@@ -1,6 +1,6 @@
 import torch
 import numpy as np
-from Augmentation.Augmentation_Visualization import voxel_plot
+from src.utils.plot_voxel import plot_v
 def generate_plot_for_given_dict_of_items(dict_of_items: dict, resolution: torch.int32, number_of_slices: torch.int32, plot_scale_factor: torch.int32, plot_range: float) -> list:
     number_of_plots_to_generate = len(dict_of_items.items())
     # print("\n number_of_plots_to_generate:", number_of_plots_to_generate)
@@ -14,7 +14,7 @@ def generate_plot_for_given_dict_of_items(dict_of_items: dict, resolution: torch
         (
             image_list,
             title_list,
-        ) = voxel_plot(
+        ) = plot_v(
             current_value,
             number_of_slices,
             resolution // plot_scale_factor,
@@ -32,7 +32,7 @@ def generate_plot_for_everything(number_of_slices: torch.int32, plot_scale_facto
     (
         gt_image_list,
         gt_title_list,
-    ) = voxel_plot(
+    ) = plot_v(
         collected_32cubes_array,
         number_of_slices,
         resolution // plot_scale_factor,
@@ -43,7 +43,7 @@ def generate_plot_for_everything(number_of_slices: torch.int32, plot_scale_facto
     (
         non_optimized_latent_codes_image_list,
         non_optimized_latent_codes_title_list,
-    ) = voxel_plot(
+    ) = plot_v(
         collected_sub_voxels_decoded_non_optimized_array,
         number_of_slices,
         resolution // plot_scale_factor,
@@ -53,7 +53,7 @@ def generate_plot_for_everything(number_of_slices: torch.int32, plot_scale_facto
     (
         optimized_latent_codes_image_list,
         optimized_latent_codes_title_list,
-    ) = voxel_plot(
+    ) = plot_v(
         collected_sub_voxels_decoded_optimized_array,
         number_of_slices,
         resolution // plot_scale_factor,
@@ -63,7 +63,7 @@ def generate_plot_for_everything(number_of_slices: torch.int32, plot_scale_facto
     (
         masked_latent_codes_image_list,
         masked_latent_codes_title_list,
-    ) = voxel_plot(
+    ) = plot_v(
         collected_decoded_masked_optimized_latent_codes_array,
         number_of_slices,
         resolution // plot_scale_factor,
@@ -73,7 +73,7 @@ def generate_plot_for_everything(number_of_slices: torch.int32, plot_scale_facto
     (
         transformer_output_image_list,
         transformer_output_title_list,
-    ) = voxel_plot(
+    ) = plot_v(
         transformer_output_sequence_up_collected_32cubes_collected_32cubes_array,
         number_of_slices,
         resolution // plot_scale_factor,
@@ -83,7 +83,7 @@ def generate_plot_for_everything(number_of_slices: torch.int32, plot_scale_facto
     (
         diff_transformer_output_vs_optimized_latent_code_image_list,
         diff_transformer_output_vs_optimized_latent_code_title_list,
-    ) = voxel_plot(
+    ) = plot_v(
         diff_transformer_output_and_optimized_latent_code_array,
         number_of_slices,
         resolution // plot_scale_factor,
