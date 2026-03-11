@@ -1,7 +1,8 @@
 import torch
 import numpy as np
 from src.utils.plot_voxel import plot_v
-def generate_plot_for_given_dict_of_items(dict_of_items: dict, resolution: torch.int32, number_of_slices: torch.int32, plot_scale_factor: torch.int32, plot_range: float) -> list:
+
+def generate_plot_for_given_dict_of_items(dict_of_items: dict, resolution: torch.int32, number_of_slices: torch.int32, plot_scale_factor: torch.int32, plot_range: list[float]) -> list:
     number_of_plots_to_generate = len(dict_of_items.items())
     # print("\n number_of_plots_to_generate:", number_of_plots_to_generate)
     keys = [key for key in dict_of_items.keys()]
@@ -24,7 +25,6 @@ def generate_plot_for_given_dict_of_items(dict_of_items: dict, resolution: torch
         plots.append(image_list)
     assert (len(plots) == number_of_plots_to_generate)
     return plots
-
 def generate_plot_for_everything(number_of_slices: torch.int32, plot_scale_factor: torch.int32, resolution:torch.int32,collected_32cubes_array: np.ndarray, collected_sub_voxels_decoded_non_optimized_array: np.ndarray,
                                  collected_sub_voxels_decoded_optimized_array: np.ndarray, collected_decoded_masked_optimized_latent_codes_array: np.ndarray,
                                  transformer_output_sequence_up_collected_32cubes_collected_32cubes_array: np.ndarray, diff_transformer_output_and_optimized_latent_code_array: np.ndarray):

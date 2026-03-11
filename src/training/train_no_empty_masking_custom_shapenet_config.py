@@ -9,6 +9,7 @@ from pytorch_lightning.strategies import DDPStrategy
 import pytorch_lightning as pl
 
 from train_no_empty_masking_custom_shapenet import TransformerSDFtoSDFShapenetNormalizedNoEmptyMaskingCustom
+
 def main():
     parser = argparse.ArgumentParser()
     #  for SDFtoSDF
@@ -26,13 +27,15 @@ def main():
     # --------------------------------------------
     parser.add_argument(
         "--train_lmdb_path",
-        default="/scratch/zakeri/shapenetcorev2_SDF_SpanningMultiResVoxel32_128fullmesh_normalized_train/encoded_combined/",  # dataset for full mesh with 128^3
+        default="/graphics/scratch2/staff/zakeri/LMDBs/shapenetcorev2_SDF_SpanningMultiResVoxel32_128fullmesh_normalized_train/encoded_combined",  # dataset for full mesh with 128^3
         type=str,
     )
 
+    # by mistake, evaluation lmdb is called validation in this pipeline. The validation is the first 100 objects in the training set used to monitor
+    # training performance
     parser.add_argument(
         "--val_lmdb_path",
-        default="/ceph/zakeri/shapenetcorev2_SDF_SpanningMultiResVoxel32_128fullmesh_ExcludingValSplit_normalized_val/_with_NonOptimizedLatentCodes/",  # dataset for full mesh with 128^3
+        default="/graphics/scratch2/staff/zakeri/LMDBs/shapenetcorev2_SDF_SpanningMultiResVoxel32_128fullmesh_ExcludingValSplit_normalized_val/_with_NonOptimizedLatentCodes/",  # dataset for full mesh with 128^3
         type=str,
     )
 
@@ -45,8 +48,8 @@ def main():
     parser.add_argument("--value_range", default=1, type=int)
 
     parser.add_argument(
-        "--checkpoint_path",
-        default="/graphics/scratch2/staff/zakeri/train_logs/VAE/skip_connection/v403_64_2x2x2_noBNDecoder_shapenetcorev2_excluding_shapenetcorev1_validation_split/lightning_logs/version_0/checkpoints/saved/checkpoint-epoch=193-loss=0.000.ckpt/",
+        "--vae_checkpoint_path",
+        default="/graphics/scratch3/staff/zakeri/VAE_Checkpoint/checkpoint-epoch=193-loss=0.000.ckpt/",
         type=str,
     )
     parser.add_argument(
@@ -56,8 +59,9 @@ def main():
     )
 
     parser.add_argument(
-        "--transformer_checkpoint_path",
-        default="/graphics/scratch2/staff/zakeri/train_logs/Transformer/flash_attention/with_optimized_latent_codes/full_dataset/overfitting/clean_code/regular_cat_fulldataset_alternative_test3_normalized_shapenet_noEmptymasking/lightning_logs/version_5/checkpoints/saved/checkpoint-epoch=791-loss=0.000.ckpt/",
+        "--transformer_checkpoint_path", # no_empty_masking checkpoint is to initialize the no_empty_masking_custom model
+        # default="/graphics/scratch2/staff/zakeri/train_logs/Transformer/flash_attention/with_optimized_latent_codes/full_dataset/overfitting/clean_code/regular_cat_fulldataset_alternative_test3_normalized_shapenet_noEmptymasking/lightning_logs/version_5/checkpoints/saved/checkpoint-epoch=791-loss=0.000.ckpt/",
+        default="/graphics/scratch3/staff/zakeri/scratch2_coppied/train_logs/Transformer/flash_attention/with_optimized_latent_codes/full_dataset/overfitting/clean_code/regular_cat_fulldataset_alternative_test3_normalized_shapenet_noEmptymasking/lightning_logs/version_5/checkpoints/saved/checkpoint-epoch=791-loss=0.000.ckpt",
         type=str,
     )
 
@@ -74,10 +78,9 @@ def main():
     # num_warmup_steps = int(warmup_ratio * num_train_steps)
     # print("\n num_warmup_steps: ", num_warmup_steps)
     #
-    parser.add_argument("--num_warmup_steps", required=True, type=int)
-    parser.add_argument("--num_training_steps",  required=True, type=int)
+    parser.add_argument("--num_warmup_steps", default=1000, type=int)
+    parser.add_argument("--num_training_steps",  default=1000000, type=int)
 
-    parser = pl.Trainer.add_argparse_args(parser)
     args = parser.parse_args()
     # write the checkpoints every 1000 steps
     checkpoint_callback = pl.callbacks.ModelCheckpoint(
@@ -90,6 +93,7 @@ def main():
         every_n_train_steps=150,
     )
     lr_Monitor = LearningRateMonitor(logging_interval="step")
+
     model = TransformerSDFtoSDFShapenetNormalizedNoEmptyMaskingCustom(
         latent_dim=args.latent_dim,
         resolution=args.resolution,
@@ -102,7 +106,7 @@ def main():
         val_lmdb_path=args.val_lmdb_path,
         mesh_path=args.mesh_path,
         value_range=args.value_range,
-        checkpoint_path=args.checkpoint_path,
+        vae_checkpoint_path=args.vae_checkpoint_path,
         marching_cube_result_dir=args.marching_cube_result_dir,
         layers=args.layers,
         dim_size=args.dim_size,
@@ -118,8 +122,8 @@ def main():
     )
 
     # configure the pytorch-lightning trainer.
-    trainer = pl.Trainer.from_argparse_args(
-        args,
+    trainer = pl.Trainer(
+        # args,
         accelerator="gpu",
         devices=-1,
         num_nodes=1,
@@ -130,9 +134,7 @@ def main():
         callbacks=[checkpoint_callback, lr_Monitor],
         val_check_interval=10000,
         check_val_every_n_epoch=None,
-        default_root_dir="/graphics/scratch2/staff/zakeri/train_logs/Transformer/flash_attention/with_optimized_latent_codes/full_dataset/overfitting/clean_code/regular_cat_fulldataset_alternative_test3_normalized_shapenet_noEmptymasking_custom/",
-        # precision="bf16",
-        # gradient_clip_val=0.5,
+        default_root_dir="/graphics/scratch2/staff/zakeri/tmp/pocslt_test/train_log/",
 
     )
     trainer.fit(model)

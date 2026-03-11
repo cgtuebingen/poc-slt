@@ -48,7 +48,7 @@ def main():
 
     parser.add_argument(
         "--checkpoint_path",
-        default="/graphics/scratch2/staff/zakeri/train_logs/VAE/skip_connection/v403_64_2x2x2_noBNDecoder_shapenetcorev2_excluding_shapenetcorev1_validation_split/lightning_logs/version_0/checkpoints/saved/checkpoint-epoch=193-loss=0.000.ckpt/",
+        default="/graphics/scratch3/staff/zakeri/VAE_Checkpoint/checkpoint-epoch=193-loss=0.000.ckpt/",
         type=str,
     )
     parser.add_argument(
