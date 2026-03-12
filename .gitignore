@@ -1,4 +1,5 @@
 src/.idea/
 * .xml
 code_map.txt
-
+.idea/vcs.xml
+unused_code/
