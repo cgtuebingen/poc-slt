@@ -3,7 +3,7 @@ from typing import  Any, Union
 
 from torch import Tensor
 
-from Networks.masker3d import make_mask3d_from_voxel
+from src.utils.masker3d import make_mask3d_from_voxel
 
 def generate_random_mask(non_empty_sub_voxels_bool: torch.bool, masking_ratio: torch.float32, number_of_sub_voxels: torch.int32, batch_size: torch.int) -> Union[tuple[Any, Any]]:
     # initialize it ---------------------------------------------------------------------------------------------------------

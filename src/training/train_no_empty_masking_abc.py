@@ -1,6 +1,4 @@
-import sys
 from typing import Tuple, Any, Union
-sys.path.append("....")
 import torch
 
 
@@ -292,7 +290,7 @@ class TransformerSDFtoSDFABCOUTSIDE(pl.LightningModule):
             selected_index = object_indices[b].detach().cpu().item()
             if selected_index in self.my_selected_indices:
                 collected_data_dict_for_plotting = pmt_fns.collect_generated_data_for_plottingv3(data_dict_for_vis, self.hparams.resolution, batch_idx=b)
-                plots = tv.generate_plot_for_given_dict_of_items(collected_data_dict_for_plotting, self.hparams.resolution, number_of_slices=2, plot_scale_factor=2, plot_range=2)
+                plots = tv.generate_plot_for_given_dict_of_items(collected_data_dict_for_plotting, self.hparams.resolution, number_of_slices=2, plot_scale_factor=2, plot_range=[-2,2])
                 self.login_to_tensorboard(plots, selected_index, number_of_slices=2)
 
     def login_to_tensorboard(self, plots: list, selected_index: int, number_of_slices: int):
@@ -309,13 +307,13 @@ class TransformerSDFtoSDFABCOUTSIDE(pl.LightningModule):
             )
 
     def setup(self, stage: str) -> None:
-        train_empty_list_file = "/graphics/scratch2/staff/zakeri/LMDBs/ABC_128cube_100KLMDB_Train_cuda/_with_NonOptimizedLatentCodes/empty_indices"
-        self.train_dataset = ABCWITHNONOPTIMIZEDLATENTCODES(self.hparams.obj_dir, self.hparams.train_lmdb_path, train_empty_list_file, self.hparams.value_range, self.hparams.resolution)
+        # train_empty_list_file = "/graphics/scratch2/staff/zakeri/LMDBs/ABC_128cube_100KLMDB_Train_cuda/_with_NonOptimizedLatentCodes/empty_indices"
+        self.train_dataset = ABCWITHNONOPTIMIZEDLATENTCODES(self.hparams.obj_dir, self.hparams.train_lmdb_path, self.hparams.value_range, self.hparams.resolution)
 
         print("\n setup: train_dataset len: ", len(self.train_dataset))
 
-        val_empty_list_file = "/graphics/scratch2/staff/zakeri/LMDBs/ABC_128cube_5KLMDB_Test_cuda/_WithnonOptimizedLatentCodes/empty_indices"
-        self.val_dataset = ABCWITHNONOPTIMIZEDLATENTCODESVAL(self.hparams.obj_dir, self.hparams.val_lmdb_path, val_empty_list_file, self.hparams.value_range, self.hparams.resolution)
+        # val_empty_list_file = "/graphics/scratch2/staff/zakeri/LMDBs/ABC_128cube_5KLMDB_Test_cuda/_WithnonOptimizedLatentCodes/empty_indices"
+        self.val_dataset = ABCWITHNONOPTIMIZEDLATENTCODESVAL(self.hparams.obj_dir, self.hparams.val_lmdb_path, self.hparams.value_range, self.hparams.resolution)
 
         print("\n setup: val_dataset len: ", len(self.val_dataset))
 
@@ -356,17 +354,11 @@ class TransformerSDFtoSDFABCOUTSIDE(pl.LightningModule):
             betas=(0.9, 0.99),
             weight_decay=0.05,
         )
-        # num_gpus = 3
-        # num_train_steps = len(self.train_dataset) // (self.hparams.batch_size * num_gpus) * self.trainer.max_epochs
-        # print("\n num_train_steps: ", num_train_steps)
-        # num_warmup_steps = int(self.hparams.warmup_ratio * num_train_steps)
-        # print("\n num_warmup_steps: ", num_warmup_steps)
-
         lr_scheduler = {
             "scheduler": get_cosine_schedule_with_warmup(
                 optimizer,
                 num_warmup_steps=self.num_warmup_steps,
-                num_training_steps=self.num_train_steps,
+                num_training_steps=self.num_training_steps,
                 num_cycles=0.5,
             ),
             "interval": "step",

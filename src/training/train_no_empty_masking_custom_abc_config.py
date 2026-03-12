@@ -1,12 +1,10 @@
 import os
-import sys
-sys.path.append("....")
 import torch
 from pytorch_lightning.strategies import DDPStrategy
 import argparse
 from pytorch_lightning.callbacks import LearningRateMonitor
 import pytorch_lightning as pl
-from src.shapenet.training.abc.training.train_no_empty_masking_custom_abc import TransformerSDFtoSDFABCOUTSIDE
+from src.training.train_no_empty_masking_custom_abc import TransformerSDFtoSDFABCOUTSIDE
 
 def main():
     parser = argparse.ArgumentParser()
@@ -53,7 +51,8 @@ def main():
     # ABC no_empty checkpoint
     parser.add_argument(
         "--transformer_checkpoint_path",
-        default="/graphics/scratch2/staff/zakeri/train_logs/Transformer/flash_attention/with_optimized_latent_codes/full_dataset/overfitting/clean_code/regular_cat_fulldataset_alternative_test3_ABC_noEmpty/lightning_logs/version_1/checkpoints/saved/checkpoint-epoch=684-loss=0.000.ckpt",
+        # default="/graphics/scratch2/staff/zakeri/train_logs/Transformer/flash_attention/with_optimized_latent_codes/full_dataset/overfitting/clean_code/regular_cat_fulldataset_alternative_test3_ABC_noEmpty/lightning_logs/version_1/checkpoints/saved/checkpoint-epoch=684-loss=0.000.ckpt",
+        default="/graphics/scratch3/staff/zakeri/scratch2_coppied/train_logs/Transformer/flash_attention/with_optimized_latent_codes/full_dataset/overfitting/clean_code/regular_cat_fulldataset_alternative_test3_ABC_noEmpty/lightning_logs/version_1/checkpoints/saved/checkpoint-epoch=684-loss=0.000.ckpt",
         type=str,
     )
     # hparams for transformer
@@ -69,10 +68,9 @@ def main():
     # num_warmup_steps = int(warmup_ratio * num_train_steps)
     # print("\n num_warmup_steps: ", num_warmup_steps)
     #
-    parser.add_argument("--num_warmup_steps", required=True, type=int)
-    parser.add_argument("--num_training_steps",  required=True, type=int)
+    parser.add_argument("--num_warmup_steps", default=1000, type=int)
+    parser.add_argument("--num_training_steps",  default=1000000, type=int)
 
-    parser = pl.Trainer.add_argparse_args(parser)
     args = parser.parse_args()
     # write the checkpoints every 1000 steps
     checkpoint_callback = pl.callbacks.ModelCheckpoint(
@@ -108,22 +106,22 @@ def main():
         num_training_steps=args.num_training_steps
     )
     # configure the pytorch-lightning trainer.
-    trainer = pl.Trainer.from_argparse_args(
-        args,
+    trainer = pl.Trainer(
+        # args,
         accelerator="gpu",
         devices=-1,
         num_nodes=1,
-        strategy=DDPStrategy(process_group_backend="NCCl"),
+        strategy=DDPStrategy(process_group_backend="NCCl", find_unused_parameters=True),
         max_epochs=2000,
         log_every_n_steps=100,
         detect_anomaly=True,
         callbacks=[checkpoint_callback, lr_Monitor],
         val_check_interval=10000,
         check_val_every_n_epoch=None,
-        default_root_dir="/graphics/scratch2/staff/zakeri/train_logs/Transformer/flash_attention/with_optimized_latent_codes/full_dataset/overfitting/clean_code/regular_cat_fulldataset_alternative_test3_ABC_custom_noEmpty/",
+        default_root_dir="/graphics/scratch2/staff/zakeri/tmp/pocslt_test/train_log/",
         # precision="bf16",
         # gradient_clip_val=0.5,
-        resume_from_checkpoint="/graphics/scratch2/staff/zakeri/train_logs/Transformer/flash_attention/with_optimized_latent_codes/full_dataset/overfitting/clean_code/regular_cat_fulldataset_alternative_test3_ABC_custom_noEmpty/lightning_logs/version_3/checkpoints/checkpoint-epoch=892-loss=0.000.ckpt"
+        # resume_from_checkpoint="/graphics/scratch2/staff/zakeri/train_logs/Transformer/flash_attention/with_optimized_latent_codes/full_dataset/overfitting/clean_code/regular_cat_fulldataset_alternative_test3_ABC_custom_noEmpty/lightning_logs/version_3/checkpoints/checkpoint-epoch=892-loss=0.000.ckpt"
     )
     trainer.fit(model)
     print("CUDA_VISIBLE_DEVICES", os.environ["CUDA_VISIBLE_DEVICES"])

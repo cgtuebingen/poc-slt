@@ -6,23 +6,21 @@
 # we open a new lmdb and write the new example and write it in a loop until the old_lmdb is completely read
 # we test the new one by once going through all of its example and do assert and so on
 # #
-import sys
-
-sys.path.append("/home/zakeri/Documents/Codes/MyCodes/Proposal2/SDF_VAE/")
+import os
 import torch
 import lmdb
 import msgpack
 import msgpack_numpy as m
 m.patch()
-from LMDB_Distributed_Generator.Cpu_.helper_functions import *
+# from LMDB_Distributed_Generator.Cpu_.helper_functions import *
 # import argparse
 import pytorch_lightning as pl
-
+import numpy as np
 
 # ------------------------------------------------------------------------------------------------------------------
 # we merge non-optimized-latent-codes with their corresponding lmdb sample from (manually optimized latent codes and 128 full mesh) lmdb
 class ABCWITHNONOPTIMIZEDLATENTCODESVAL(pl.LightningDataModule):
-    def __init__(self, obj_dir, lmdb_path, empty_list_file: str, value_range, resolution):
+    def __init__(self, obj_dir, lmdb_path, value_range, resolution):
         super(ABCWITHNONOPTIMIZEDLATENTCODESVAL).__init__()
 
         self.obj_dir = obj_dir
@@ -35,6 +33,7 @@ class ABCWITHNONOPTIMIZEDLATENTCODESVAL(pl.LightningDataModule):
         self.empty_list = []
         # old ABC
         # empty_list_file = "/graphics/scratch2/staff/zakeri/LMDBs/ABC_128cube_5KLMDB_Test_with_nonOptimizedLatentCodes/empty_indices"
+        empty_list_file = self.lmdb_path + "/empty_indices"
         with open(empty_list_file, 'r') as file:
             for line in file:
                 self.empty_list.append(int(line.rstrip('\n')))
@@ -134,39 +133,3 @@ class ABCWITHNONOPTIMIZEDLATENTCODESVAL(pl.LightningDataModule):
             # var_copy,
             non_optimized_latent_code_copy,
         ]
-
-# end of the class-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# if __name__ == "__main__":
-#     obj_dir = "/graphics/scratch/datasets/ABC/obj/"
-#     resolution = 128
-#     value_range = 1
-#
-#     target_resolution = 32
-#     latent_dim = 512
-#     device = "cuda:0"
-#     pre_trained = True
-#
-#     checkpoint_path = "/graphics/scratch2/staff/zakeri/train_logs/VAE/skip_connection/v403_64_2x2x2_noBNDecoder_shapenetcorev2_excluding_shapenetcorev1_validation_split/lightning_logs/version_0/checkpoints/saved/checkpoint-epoch=193-loss=0.000.ckpt/"
-#
-#     mesh_path = "/graphics/scratch2/staff/zakeri/LMDBs/ShapeNetCorev2_remeshed_0.008/ShapeNetCore.v2/"
-#
-#     old_lmdb_path = "/graphics/scratch2/staff/zakeri/LMDBs/ABC_128cube_100KLMDB_combined/combined/"
-#
-#     new_lmdb_path = "/graphics/scratch2/staff/zakeri/LMDBs/ABC_128cube_100KLMDB_combined/ABC_128cube_100KLMDB_combined_with_NonOptimizedLatentCodes"
-#
-#     #
-#     from Dataset.Dateset_Class_128fullmesh_ABC_with_NonOptimizedLatentCodes import ABCWITHNONOPTIMIZEDLATENTCODES
-#     dataset = ABCWITHNONOPTIMIZEDLATENTCODES(obj_dir, old_lmdb_path, value_range, resolution)
-#     class_obj = MERGETWOLMDBSINTOONE(
-#         dataset,
-#         mesh_path,
-#         old_lmdb_path,
-#         new_lmdb_path,
-#         checkpoint_path,
-#         device,
-#         pre_trained,
-#         latent_dim,
-#         value_range,
-#         resolution,
-#         target_resolution,
-#     )

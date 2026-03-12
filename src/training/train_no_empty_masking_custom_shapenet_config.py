@@ -59,7 +59,7 @@ def main():
     )
 
     parser.add_argument(
-        "--transformer_checkpoint_path", # no_empty_masking checkpoint is to initialize the no_empty_masking_custom model
+        "--transformer_checkpoint_path",  # no_empty_masking checkpoint is to initialize the no_empty_masking_custom model
         # default="/graphics/scratch2/staff/zakeri/train_logs/Transformer/flash_attention/with_optimized_latent_codes/full_dataset/overfitting/clean_code/regular_cat_fulldataset_alternative_test3_normalized_shapenet_noEmptymasking/lightning_logs/version_5/checkpoints/saved/checkpoint-epoch=791-loss=0.000.ckpt/",
         default="/graphics/scratch3/staff/zakeri/scratch2_coppied/train_logs/Transformer/flash_attention/with_optimized_latent_codes/full_dataset/overfitting/clean_code/regular_cat_fulldataset_alternative_test3_normalized_shapenet_noEmptymasking/lightning_logs/version_5/checkpoints/saved/checkpoint-epoch=791-loss=0.000.ckpt",
         type=str,

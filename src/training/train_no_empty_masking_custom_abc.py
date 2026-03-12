@@ -285,7 +285,7 @@ class TransformerSDFtoSDFABCOUTSIDE(pl.LightningModule):
             selected_index = object_indices[b].detach().cpu().item()
             if selected_index in self.my_selected_indices:
                 collected_data_dict_for_plotting = pmt_fns.collect_generated_data_for_plottingv3(data_dict_for_vis, self.hparams.resolution, batch_idx=b)
-                plots = tv.generate_plot_for_given_dict_of_items(collected_data_dict_for_plotting, self.hparams.resolution, number_of_slices=2, plot_scale_factor=2, plot_range=2)
+                plots = tv.generate_plot_for_given_dict_of_items(collected_data_dict_for_plotting, self.hparams.resolution, number_of_slices=2, plot_scale_factor=2, plot_range=[-2, 2])
                 self.login_to_tensorboard(plots, selected_index, number_of_slices=2)
 
     def login_to_tensorboard(self, plots: list, selected_index: int, number_of_slices: int):
@@ -359,7 +359,7 @@ class TransformerSDFtoSDFABCOUTSIDE(pl.LightningModule):
             "scheduler": get_cosine_schedule_with_warmup(
                 optimizer,
                 num_warmup_steps=self.num_warmup_steps,
-                num_training_steps=self.num_train_steps,
+                num_training_steps=self.num_training_steps,
                 num_cycles=0.5,
             ),
             "interval": "step",
