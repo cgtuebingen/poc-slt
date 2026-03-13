@@ -1,15 +1,12 @@
-import sys
-sys.path.append("/home/zakeri/Documents/Codes/MyCodes/Proposal2/SDF_VAE/")
 import os
 import pytorch_lightning as pl
 import lmdb
 import msgpack
 import msgpack_numpy as m
 m.patch()
-from tqdm.auto import tqdm
 import torch
-import argparse
 import numpy as np
+
 class ShapeNetcorev1NormalizedTrainWithNonOptimizedLatentCodes(pl.LightningDataModule):
     def __init__(self, mesh_path: str, points_to_sample: int, query_number: int, lmdb_path: str, value_range: int = 1, resolution: int = 128,
                  examples_per_epoch: int = 1000, exclude_empty: bool = True):
@@ -28,10 +25,8 @@ class ShapeNetcorev1NormalizedTrainWithNonOptimizedLatentCodes(pl.LightningDataM
 
         self.exclude_empty: bool = exclude_empty
 
-        # TODO, add the list of empty ones for training only here
         self.empty_list = []
         if self.exclude_empty:
-            # empty_list_file = "/scratch/zakeri/shapenetcorev2_SDF_SpanningMultiResVoxel32_128fullmesh_normalized_train/encoded_combined/empty_indices"
             empty_list_file = self.lmdb_path+"/empty_indices"
             with open(empty_list_file, 'r') as file:
                 for line in file:
@@ -77,7 +72,6 @@ class ShapeNetcorev1NormalizedTrainWithNonOptimizedLatentCodes(pl.LightningDataM
 
     def __len__(self):
         print("\n 128 fullmesh dataset class :len fn: ", len(self.keys))
-        # return len(self.keys)
         return self.len
 
     def openLMDB(self, path: str):
@@ -132,22 +126,6 @@ class ShapeNetcorev1NormalizedTrainWithNonOptimizedLatentCodes(pl.LightningDataM
         # TESTS:
         assert gt_sdf_voxel.shape == (128, 128, 128)
         assert non_optimized_latent_code.shape == (64, 512, 2, 2, 2)
-
-        # gt_sdf_voxel_copy: torch.Tensor = torch.from_numpy(gt_sdf_voxel).to(dtype=torch.float32)
-        # if gt_sdf_voxel_copy.is_shared():
-        #     gt_sdf_voxel_copy = gt_sdf_voxel_copy.clone()
-        #
-        # non_optimized_latent_code_copy: torch.Tensor = torch.from_numpy(non_optimized_latent_code).to(dtype=torch.float32)
-        # if non_optimized_latent_code_copy.is_shared():
-        #     non_optimized_latent_code_copy = non_optimized_latent_code_copy.clone()
-        #
-        # var_copy: torch.Tensor = torch.from_numpy(var).to(dtype=torch.float32)
-        # if var_copy.is_shared():
-        #     var_copy = var_copy.clone()
-        #
-        # std_copy: torch.Tensor = torch.from_numpy(std).to(dtype=torch.float32)
-        # if std_copy.is_shared():
-        #     std_copy = std_copy.clone()
 
         return [
             key,

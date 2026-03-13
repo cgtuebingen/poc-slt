@@ -1,5 +1,3 @@
-import sys
-sys.path.append("....")
 import torch
 from tqdm import tqdm
 
@@ -14,9 +12,9 @@ from src.utils.helper_fns import concatenate_for_given_dim
 from src.utils.positional_encoder_class import MYPositionalEncoder3D
 from src.utils import sub_voxel_related_fns as pp_fns
 from src.evaluation.shapenet.common_extract_bbx_with_mesh_file_name import calculate_metric_scale_for_mesh_file_name
-from src.evaluation.shapenet.common_fns_shapenet import evaluate, march_voxels_and_write_objs, write_evaluation_result, march_gt_and_mask_only_and_write_objs
+from src.unused_code.common_fns_shapenet import evaluate, march_voxels_and_write_objs, write_evaluation_result, march_gt_and_mask_only_and_write_objs
 
-from src.evaluation.shapenet.dataset_NonOptimized import setup_dataset
+from src.evaluation.shapenet.dataset_shapenet import setup_dataset
 # vae model
 from src.p_vae.pvae import SDFtoSDF
 from src.utils.shapenetcorev2_prep_fns import map_folder_to_label
@@ -144,16 +142,11 @@ class EVALShapenet:
         # Prep for passing the masked_optimized_latent_codes to transformer--------------------------------------------------------
         # masked_optimized_latent_codes size : [B, SeqLen, 512, 2, 2, 2] --> [B, 64, 512, 2, 2, 2] --> reshape: [B, 64, 4096]
         masked_non_optimized_non_latent_codes_reshaped = masked_non_optimized_latent_codes.reshape([batch_size, self.number_of_sub_voxels, 8 * self.latent_dim])
-        # redundant mapping-------------------------------------------------------------------------------------------------------
         masked_non_optimized_non_latent_codes_reshaped_mapped = self.frozen_redundant_mapping(masked_non_optimized_non_latent_codes_reshaped)
         assert masked_non_optimized_non_latent_codes_reshaped.shape == masked_non_optimized_non_latent_codes_reshaped_mapped.shape
-        # Positional Embeder----------------------------------------------------------------------------------------------------
         z_positionally_encoded_re = self.positional_encoder_3d(shape_of_positions=[batch_size, 4, 4, 4, self.penc_channels]).to(device=self.device)
-        # Adding latent code with positional embedding-----------------------------------------------------------------------------
         assert z_positionally_encoded_re.shape == masked_non_optimized_non_latent_codes_reshaped_mapped.shape
-        # CAT---------
         transformer_input_sequence = concatenate_for_given_dim(z_positionally_encoded_re, masked_non_optimized_non_latent_codes_reshaped_mapped, cat_dim=2)
-        # Transformer ----------------------------------------------------------------------------------------------------
         transformer_output_sequence = self.call_transformer_and_mapping_layers(transformer_input_sequence)
         return (transformer_output_sequence, masked_non_optimized_latent_codes)
 
@@ -164,13 +157,11 @@ class EVALShapenet:
             pair = {"object_index": object_indices.item(), "mesh_file_name": mesh_file_names}
             print("\nall voxels are empty", pair)
             breakpoint()
-        # generate masked bool------------------------------------------------------------------------------------------------------------
+
         mask_all_bool, num_mask_all = gr_mask.generate_random_mask_for_all(self.number_of_sub_voxels, batch_size, masking_ratio=self.masking_ratio)
         # just for return
         masked_bool = mask_all_bool.clone()
-        # actual non_masked_bool:
         non_masked_bool = torch.logical_and(non_empty_sub_voxels_bool, torch.logical_not(mask_all_bool))
-        # num_non_masked_bool = torch.count_nonzero(non_masked_bool, dim=1)
         return (mask_all_bool, masked_bool, non_masked_bool)
 
     def fwd(self, batch: list) -> Tuple:
@@ -186,10 +177,8 @@ class EVALShapenet:
         ) = batch
         # -----------------------------------------------------------------------------------------------------------------------------------------
         sub_voxels = pp_fns.sub_divide_gt_and_normalize(gt_sdf_full_voxel.clone(), self.number_of_sub_voxels, self.target_resolution)
-        # generate empty and non-empty bool--------------------------------------------------------------------------------------------------------
         mask_all_bool, masked_bool, non_masked_bool = self.generate_all_masking(sub_voxels, object_indices, mesh_file_names)
         # FORWARD CAlL-----------------------------------------------------------------------------------------------------------------------------
-        # if I want this to run , my val_batch and my train_batch need to be the same.
         (transformer_output_sequence_up, masked_non_optimized_latent_codes) = self.forward(sub_voxels, non_optimized_latent_codes, mask_all_bool)
 
         return (masked_non_optimized_latent_codes, transformer_output_sequence_up, sub_voxels)
@@ -222,7 +211,6 @@ class EVALShapenet:
             sub_folder_name,
         ]
 
-        # batch_size = object_indices.shape[0]
         assert object_indices.shape == (self.val_batch_size,)
         return val_batch
 
@@ -253,12 +241,6 @@ class EVALShapenet:
 
             #  calculating the scale for this mesh_file_name;
             mesh_info, metric_info = calculate_metric_scale_for_mesh_file_name(mesh_file_names, self.bbx_list)
-            # key_info, aabb = mesh_info
-            # print("\n mesh_info:", mesh_info)
-            # # to find specific object:
-            # if object_indices == 7175:
-            #     break
-            # continue
             hausdorff_scale, chamfer_scale = metric_info
 
             # visualization and tensorboard---------------------------

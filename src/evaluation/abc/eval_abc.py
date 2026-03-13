@@ -9,10 +9,10 @@ from src.utils.helper_fns import concatenate_for_given_dim
 from src.training.train_no_empty_masking_custom_abc import (
     TransformerSDFtoSDFABCOUTSIDE,
 )
-from src.ABC_dataset_processing.calculate_bbx_ABC_and_normlize_them_to_shapenet_scale import normalize_ABC_compatible_with_shapenet
+from src.evaluation.abc.calculate_bbx_abc_and_normalize_them_to_shapenet_scale import normalize_abc_compatible_with_shapenet
 from src.utils.custom_cutting import custom_mask
 from src.evaluation.abc.dataset_abc import setup_dataset
-from src.evaluation.abc.common_fns_abc import march_voxels_and_write_objs, evaluate, write_evaluation_result, march_gt_and_mask_only_and_write_objs
+from src.unused_code.common_fns_abc import march_voxels_and_write_objs, evaluate, write_evaluation_result, march_gt_and_mask_only_and_write_objs
 
 from src.p_vae.pvae import SDFtoSDF
 
@@ -63,7 +63,7 @@ class EVALABC:
         self.num_samples = num_samples
         self.common_obj_dir = common_obj_dir
 
-        ABC_mesh_file_name_to_bbx_path = "/graphics/scratch2/staff/zakeri/LMDBs/ABC_128cube_5KLMDB_Test_with_nonOptimizedLatentCodes/mesh_file_names_to_bbx.pkl"
+        ABC_mesh_file_name_to_bbx_path = ".../data/mesh_file_names_to_bbx.pkl"
         self.mesh_file_name_to_bbx = torch.load(ABC_mesh_file_name_to_bbx_path)
 
         if self.pre_trained:
@@ -90,7 +90,6 @@ class EVALABC:
             self.frozen_constant_learnable_mask_tensors = self.pre_trained_transformer.constant_learnable_mask_tensors
 
             # vae model
-
             pre_trained_model_vae = SDFtoSDF.load_from_checkpoint(
                 self.vae_checkpoint_path
             ).to(self.device)
@@ -137,17 +136,11 @@ class EVALABC:
         # Prep for passing the masked_optimized_latent_codes to transformer--------------------------------------------------------
         # masked_optimized_latent_codes size : [B, SeqLen, 512, 2, 2, 2] --> [B, 64, 512, 2, 2, 2] --> reshape: [B, 64, 4096]
         masked_non_optimized_non_latent_codes_reshaped = masked_non_optimized_latent_codes.reshape([batch_size, self.number_of_sub_voxels, 8 * self.latent_dim])
-        # redundant mapping-------------------------------------------------------------------------------------------------------
         masked_non_optimized_non_latent_codes_reshaped_mapped = self.frozen_redundant_mapping(masked_non_optimized_non_latent_codes_reshaped)
         assert masked_non_optimized_non_latent_codes_reshaped.shape == masked_non_optimized_non_latent_codes_reshaped_mapped.shape
-        # Positional Embeder----------------------------------------------------------------------------------------------------
         z_positionally_encoded_re = self.positional_encoder_3d(shape_of_positions=[batch_size, 4, 4, 4, self.penc_channels]).to(device=self.device)
-        # Adding latent code with positional embedding-----------------------------------------------------------------------------
         assert z_positionally_encoded_re.shape == masked_non_optimized_non_latent_codes_reshaped_mapped.shape
-        # CAT---------
         transformer_input_sequence = concatenate_for_given_dim(z_positionally_encoded_re, masked_non_optimized_non_latent_codes_reshaped_mapped, cat_dim=2)
-
-        # Transformer ----------------------------------------------------------------------------------------------------
         transformer_output_sequence = self.call_transformer_and_mapping_layers(transformer_input_sequence)
 
         return (transformer_output_sequence, masked_non_optimized_latent_codes)
@@ -164,26 +157,18 @@ class EVALABC:
         ) = batch
 
         batch_size = object_indices.shape[0]
-        # -----------
-        sub_voxels = pp_fns.sub_divide_gt_and_normalize(gt_sdf_full_voxel.clone(), self.number_of_sub_voxels, self.target_resolution)
-        # TODO CHange me
-        # 1- generate empty and non-empty bool-----------------------------------------------------------------------------------------------
-        # empty_sub_voxels_bool, non_empty_sub_voxels_bool = pp_fns.extract_empty_and_non_empty_voxels(sub_voxels.clone(), self.number_of_sub_voxels, self.target_resolution)
 
-        # 2- generate outside and non-outside bool-----------------------------------------------------------------------------------------------
+        sub_voxels = pp_fns.sub_divide_gt_and_normalize(gt_sdf_full_voxel.clone(), self.number_of_sub_voxels, self.target_resolution)
         empty_sub_voxels_bool, non_empty_sub_voxels_bool = pp_fns.extract_outside_and_non_outside_voxels(sub_voxels.clone(), self.number_of_sub_voxels, self.target_resolution)
 
         if not torch.all(torch.any(non_empty_sub_voxels_bool, dim=1)):
             pair = {"key": keys, "object_index": object_indices.item(), "obj_file_name": obj_file_names}
-            # empty_indices.append(pair)
             print("\nall voxels are empty", pair)
             breakpoint()
 
-        # generate masked bool------------------------------------------------------------------------------------------------------------
         mask_all_bool = custom_mask(self.custom_mask_mode, self.target_resolution, batch_size, self.number_of_sub_voxels, given_device=self.device)
 
         # FORWARD CAlL----------------------------------------------------------------------------------------------------------------------------
-        # if I want this to run , my val_batch and my train_batch need to be the same.
         (transformer_output_sequence_up, masked_non_optimized_latent_codes) = self.forward_ABC(sub_voxels, non_optimized_latent_codes, mask_all_bool)
 
         return (masked_non_optimized_latent_codes, transformer_output_sequence_up, sub_voxels)
@@ -248,7 +233,7 @@ class EVALABC:
             )
 
             # here is where we prep data for eval so normalizing ABC compatible with shapenet
-            hausdorff_scale, chamfer_scale = normalize_ABC_compatible_with_shapenet(self.mesh_file_name_to_bbx, obj_file_names)
+            hausdorff_scale, chamfer_scale = normalize_abc_compatible_with_shapenet(self.mesh_file_name_to_bbx, obj_file_names)
             dict_arguments_for_vis = {
                 "non_optimized_latent_codes": non_optimized_latent_codes,
                 "masked_non_optimized_latent_codes": masked_non_optimized_latent_codes,
@@ -274,26 +259,6 @@ class EVALABC:
             }
             march_gt_and_mask_only_and_write_objs(dict_arguments_for_vis, dict_arguments_of_variables, object_indices, self.fdecoder)
             dict_arguments_for_eval, collected_data_dict_for_plotting = march_voxels_and_write_objs(dict_arguments_for_vis, dict_arguments_of_variables, object_indices, self.fdecoder)
-
-            # dict_arguments_for_eval = {
-            #     "Non_Optimized_latent_codes_file_name_obj": Non_Optimized_latent_codes_file_name_obj,
-            #     "Masked_non_optimized_latent_codes_file_name_obj": Masked_non_optimized_latent_codes_file_name_obj,
-            #     "Transformer_output_file_name_obj": Transformer_output_file_name_obj,
-            #     "True_gt_sdf_file_name_obj": True_gt_sdf_file_name_obj,
-            # }
-
-            # if not os.path.isfile(dict_arguments_for_eval["Non_Optimized_latent_codes_file_name_obj"]):
-            #     print('\n', i, "NOLC missing", dict_arguments_for_eval["Non_Optimized_latent_codes_file_name_obj"])
-            #     continue
-            # if not os.path.isfile(dict_arguments_for_eval["Masked_non_optimized_latent_codes_file_name_obj"]):
-            #     print('\n', i, "MNOLC missing", dict_arguments_for_eval["Masked_non_optimized_latent_codes_file_name_obj"])
-            #     continue
-            # if not os.path.isfile(dict_arguments_for_eval["Transformer_output_file_name_obj"]):
-            #     print('\n', i, "TO missing", dict_arguments_for_eval["Transformer_output_file_name_obj"])
-            #     continue
-            # if not os.path.isfile(dict_arguments_for_eval["True_gt_sdf_file_name_obj"]):
-            #     print('\n', i, "TGT missing", dict_arguments_for_eval["True_gt_sdf_file_name_obj"])
-            #     continue
 
             eval_results = evaluate(dict_arguments_for_eval, dict_arguments_of_variables, collected_data_dict_for_plotting)
             write_evaluation_result(eval_results, self.eval_dir)

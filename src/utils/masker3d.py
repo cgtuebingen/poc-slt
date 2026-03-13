@@ -1,6 +1,5 @@
 import torch
 
-
 def make_mask3d_from_latent_code(batch_size: int, sql: int, prob: float) -> torch.bool:
     src_mask = torch.rand([batch_size, sql])
     src_mask_bool = src_mask < prob

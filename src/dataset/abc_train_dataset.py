@@ -1,23 +1,13 @@
-# we read from the lmdb that is a combination of optimized_latent_codes and manually optimized latent codes call it old_lmdb
-# for every batch that we parse, we get original gt_sdf_voxel and subdivide it to sub-voxels
-# we normalize sub-voxels by multiply them with 2 and reshape them correctly for encoding
-# we have uploaded the encoder frozen, and we encode sub_voxels to get the non-optimized_latent code
-# with the previous batch, and adding the non-optimized_latent_code, we create a new example
-# we open a new lmdb and write the new example and write it in a loop until the old_lmdb is completely read
-# we test the new one by once going through all of its example and do assert and so on
-# #
 import os
 import torch
 import lmdb
 import msgpack
 import msgpack_numpy as m
 m.patch()
-# from LMDB_Distributed_Generator.Cpu_.helper_functions import *
 import pytorch_lightning as pl
 import numpy as np
 
 # ------------------------------------------------------------------------------------------------------------------
-# we merge non-optimized-latent-codes with their corresponding lmdb sample from (manually optimized latent codes and 128 full mesh) lmdb
 class ABCWITHNONOPTIMIZEDLATENTCODES(pl.LightningDataModule):
     def __init__(self, obj_dir, lmdb_path, value_range, resolution):
         super(ABCWITHNONOPTIMIZEDLATENTCODES).__init__()
@@ -30,8 +20,6 @@ class ABCWITHNONOPTIMIZEDLATENTCODES(pl.LightningDataModule):
         self.my_lmdb = None
 
         self.empty_list = []
-        # old ABC
-        # empty_list_file = "/graphics/scratch2/staff/zakeri/LMDBs/ABC_128cube_100KLMDB_combined/ABC_128cube_100KLMDB_combined_with_NonOptimizedLatentCodes/empty_indices"
         empty_list_file = self.lmdb_path + "/empty_indices"
         with open(empty_list_file, 'r') as file:
             for line in file:

@@ -1,8 +1,5 @@
 import os
 import torch
-import sys
-
-sys.path.append("....")
 
 from src.evaluation.shapenet.common_files_shapenet import (
     extract_files_with_given_extension_general,

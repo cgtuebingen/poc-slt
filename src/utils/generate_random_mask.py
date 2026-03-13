@@ -1,5 +1,5 @@
 import torch
-from typing import  Any, Union
+from typing import Any, Union
 
 from torch import Tensor
 
@@ -10,7 +10,6 @@ def generate_random_mask(non_empty_sub_voxels_bool: torch.bool, masking_ratio: t
     non_masked_bool = torch.zeros([batch_size, number_of_sub_voxels], dtype=torch.bool, device='cuda')
     masked_bool = torch.zeros([batch_size, number_of_sub_voxels], dtype=torch.bool, device='cuda')
     # # Decoder Mask First, Non-Mask Second, Masked Third-------------------------------------------------------------------------
-    # TODO: do this per batch, remove torch.any,...it is working now fine
     non_masking_ratio = 1 - masking_ratio
     for _ in range(10):
         remaining_voxels = non_empty_sub_voxels_bool.clone()
@@ -23,21 +22,17 @@ def generate_random_mask(non_empty_sub_voxels_bool: torch.bool, masking_ratio: t
         num_non_masked = torch.count_nonzero(non_masked_bool, dim=1)
 
         remaining_voxels = torch.logical_and(remaining_voxels, torch.logical_not(non_masked_bool))
-        # print("\n masked_bool count:", num_remaining)
         masked_bool = remaining_voxels
 
         non_masking_ratio_min = non_masking_ratio - 0.05
         minimum_num_non_masked = (num_remaining * (non_masking_ratio_min)).to(dtype=torch.int32)
         if torch.any(num_non_masked < minimum_num_non_masked):
-            # print("\n num_non_masked: ", num_non_masked)
             continue
-        # all good :)
         break
     # else:
     #     # breakpoint
     #     assert False  # could not find a valid solution
 
-    # print("\n last num_non_masked: ", num_non_masked)
     # assert torch.all(num_non_masked > 0)
     return (non_masked_bool, masked_bool)
 

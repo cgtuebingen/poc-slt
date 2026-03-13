@@ -8,8 +8,7 @@ def normalize_voxels_to_their_distance_with_batch(voxels: torch.Tensor, distance
         voxel = voxels[b, :, :, :].squeeze()
         d = distances_per_voxel[b].squeeze()
         d = d.to(torch.float32)
-        # print("\n d:", d)
-        # print("\n min voxel: ", torch.min(voxel), "max voxel: ", torch.max(voxel))
+
         normalized_voxels[b, :, :, :] = voxel / d
         # print("\n min normalized_voxels: ", torch.min(normalized_voxels[b, :, :, :]), "max normalized_voxels: ", torch.max(normalized_voxels[b, :, :, :]))
         # if (torch.min(normalized_voxels) < -torch.sqrt(torch.as_tensor(3)) or torch.max(normalized_voxels) > torch.sqrt(torch.as_tensor(3))):

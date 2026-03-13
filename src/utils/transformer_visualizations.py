@@ -4,9 +4,7 @@ from src.utils.plot_voxel import plot_v
 
 def generate_plot_for_given_dict_of_items(dict_of_items: dict, resolution: torch.int32, number_of_slices: torch.int32, plot_scale_factor: torch.int32, plot_range: list[float]) -> list:
     number_of_plots_to_generate = len(dict_of_items.items())
-    # print("\n number_of_plots_to_generate:", number_of_plots_to_generate)
     keys = [key for key in dict_of_items.keys()]
-    # print("\n keys:", keys)
     plots = []
     for i in range(len(keys)):
         current_key = keys[i]
@@ -142,7 +140,6 @@ def plot_everything(
         ],
         -1,
     )
-    # print("\n validation_epoch_end plot type:", type(plot), ", shape:", plot.shape)
     del image_gt
     del image_non_optim
     del image_masked

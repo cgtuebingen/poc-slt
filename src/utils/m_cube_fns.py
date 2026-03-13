@@ -14,11 +14,7 @@ def make_mcubes_from_voxels(voxel: np.ndarray, current_epoch: int, current_globa
     else:
         export_file_name_dae = result_dir + str(file_name) + '-' + 'epoch' + '=' + str(current_epoch) + '-' + 'global_step' + '=' + str(current_global_step) + '.dae'
         mcubes.export_mesh(vertices_, triangles_, export_file_name_dae, str(file_name))
-    # print("\n vertices: ", vertices_.shape)
-    # print("\n triangles_: ", triangles_.shape)
-    # Export the result to sphere.dae
-    #
-    #
+
 def make_mcubes_from_voxels_obj(voxel: np.ndarray, current_epoch: int, current_global_step: int, current_batch, file_name: str,
                             result_dir: str):
     voxel__copy = np.array(voxel, copy=True)
@@ -27,7 +23,6 @@ def make_mcubes_from_voxels_obj(voxel: np.ndarray, current_epoch: int, current_g
     vertices_ = vertices_ / (vertices_.shape[0]*0.5) - 1.0
 
     export_file_name_obj = result_dir + str(file_name) + '-' + 'epoch' + '=' + str(current_epoch) + '-' + 'global_step' + '=' + str(current_global_step) + '.obj'
-    # print("\nexport_file_name_obj: ", export_file_name_obj)
     mcubes.export_obj(vertices_, triangles_, export_file_name_obj)
 
 def make_mcubes_from_voxels_obj_for_eval(voxel: np.ndarray, object_index: int, file_name: str, result_dir: str) -> str:
@@ -73,30 +68,6 @@ def make_mcubes_from_voxels_dae(voxel: np.ndarray, current_epoch: int, current_g
     export_file_name_dae = result_dir + str(file_name) + '-' + 'epoch' + '=' + str(current_epoch) + '-' + 'global_step' + '=' + str(current_global_step) + '.dae'
     mcubes.export_mesh(vertices_, triangles_, export_file_name_dae, str(file_name))
 
-def make_mcubes_from_voxels_manually(voxel: np.ndarray, current_epoch: int, current_batchID, file_name: str,
-                            result_dir: str):
-    voxel__copy = np.array(voxel, copy=True)
-    vertices_, triangles_ = mcubes.marching_cubes(voxel__copy, 0)
-    # print("\n vertices: ", vertices_.shape)
-    # print("\n triangles_: ", triangles_.shape)
-    # Export the result to sphere.dae
-    export_file_name_dae = result_dir + str(file_name) + '-' + 'epoch' + '=' + str(current_epoch) + '-batch-ID' + '=' + str(current_batchID) + '.dae'
-    # export_file_name_obj = result_dir + str(file_name) + '-' + 'epoch' + '=' + str(current_epoch) + '-' + 'global_step' + '=' + str(0) + '.obj'
-
-    mcubes.export_mesh(vertices_, triangles_, export_file_name_dae, str(file_name))
-    # mcubes.export_obj(vertices_, triangles_, export_file_name_obj)
-
-def make_mcubes_from_voxels_manually_no_epoch(voxel: np.ndarray, current_batchID, file_name: str,
-                            result_dir: str):
-    voxel__copy = np.array(voxel, copy=True)
-    vertices_, triangles_ = mcubes.marching_cubes(voxel__copy, 0)
-    # print("\n vertices: ", vertices_.shape)
-    # print("\n triangles_: ", triangles_.shape)
-    # Export the result to sphere.dae
-    export_file_name_dae = result_dir + str(file_name) + '-batch-ID' + '=' + str(current_batchID) + '.dae'
-
-    mcubes.export_mesh(vertices_, triangles_, export_file_name_dae, str(file_name))
-    # mcubes.export_obj(vertices_, triangles_, export_file_name_obj)
 
 def marche_the_cube(tensor_cube: np.ndarray, epoch, global_step: int, marching_cube_result_dir: str, title: str, selected_mesh_index: int):
     # marching cube

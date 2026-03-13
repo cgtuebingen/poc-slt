@@ -3,7 +3,7 @@ from typing import Tuple
 from src.utils.subvolume_devision import (
     subvdivide_voxel_with_batch,
     extract_empty_sub_voxel_indices_from_voxel,
-extract_outside_sub_voxel_indices_from_voxel
+    extract_outside_sub_voxel_indices_from_voxel
 )
 
 def sub_divide_gt_and_normalize(gt_sdf_full_voxel: torch.Tensor, number_of_sub_voxels: int, target_resolution: int) -> torch.Tensor:

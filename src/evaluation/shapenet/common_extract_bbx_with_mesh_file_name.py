@@ -1,10 +1,5 @@
-import os
-import sys
 from typing import Tuple, Any
 
-sys.path.append("/home/zakeri/Documents/Codes/MyCodes/Proposal2/SDF_VAE/")
-# import torch
-# from tqdm import tqdm
 import numpy as np
 
 def extract_keys_from_mesh_file_name(mesh_file_name):
@@ -31,7 +26,8 @@ def calculate_scales_for_metrics(aabb) -> Tuple[Any, Any]:
     hausdorff_scale = d / 2
 
     chamfer_scale = d*d/4
-     # fscore1% -> thereshould  0.02 ( our side length is 2 and not 1!)
+
+    # fscore1% -> threshold  0.02 ( our side length is 2 and not 1!)
 
     return (hausdorff_scale, chamfer_scale)
 

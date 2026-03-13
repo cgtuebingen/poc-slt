@@ -1,6 +1,4 @@
-import sys
 from typing import Tuple, Any, Union
-sys.path.append("....")
 import torch
 from torch import nn
 import pytorch_lightning as pl
@@ -15,7 +13,6 @@ from src.utils import sub_voxel_related_fns as pp_fns
 from src.utils.positional_encoder_class import MYPositionalEncoder3D
 # ----------------------------------------------------------------------------------------------------------------------------------------------------
 from src.utils import encoder_decoder_loading as ed
-from src.utils import L1_loss_fns as L1_fn
 from src.utils import mask_huristic as gr_mask
 from src.utils.helper_fns import concatenate_for_given_dim
 from src.training.train_no_empty_masking_abc import TransformerSDFtoSDFABCOUTSIDE as no_empty_trans
@@ -77,7 +74,7 @@ class TransformerSDFtoSDFABCOUTSIDE(pl.LightningModule):
         number_of_sub_voxels = self.hparams.resolution // self.hparams.target_resolution
         self.number_of_sub_voxels = number_of_sub_voxels * number_of_sub_voxels * number_of_sub_voxels
 
-        self.my_selected_indices = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]  # this script
+        self.my_selected_indices = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]   # only for the purpose of visualization and save time
 
         # generator = torch.Generator(device=self.device)
         # generator.manual_seed(123)
@@ -112,14 +109,14 @@ class TransformerSDFtoSDFABCOUTSIDE(pl.LightningModule):
         # calculate scaled losses
         if True:
             transformer_output_sequence_shape = [transformer_output_sequence.shape[0], transformer_output_sequence.shape[1]]
-            (l1_loss_scaled, l1_loss_masked_scaled, l1_loss_non_masked_scaled) = L1_fn.scale_losses_noEmptymasking(
+            (l1_loss_scaled, l1_loss_masked_scaled, l1_loss_non_masked_scaled) = l_fn.scale_losses_noEmptymasking(
                 loss_dict, masked_bool, non_masked_bool, transformer_output_sequence_shape
             )
             loss_dict_scaled = {"l1_loss_masked": l1_loss_masked_scaled, "l1_loss_non_masked": l1_loss_non_masked_scaled}
 
         # weight losses
         if True:
-            (l1_loss_w, l1_loss_masked_w, l1_loss_non_masked_w) = L1_fn.weight_losses_noEmptymasking(
+            (l1_loss_w, l1_loss_masked_w, l1_loss_non_masked_w) = l_fn.weight_losses_noEmptymasking(
                 loss_dict_scaled, weight_masked=1.0, weight_non_masked=1.0
             )
 
@@ -302,13 +299,18 @@ class TransformerSDFtoSDFABCOUTSIDE(pl.LightningModule):
             )
 
     def setup(self, stage: str) -> None:
-        train_empty_list_file = "/graphics/scratch2/staff/zakeri/LMDBs/ABC_128cube_100KLMDB_Train_cuda/_with_NonOptimizedLatentCodes/empty_indices"
-        self.train_dataset = ABCWITHNONOPTIMIZEDLATENTCODES(self.hparams.obj_dir, self.hparams.train_lmdb_path, train_empty_list_file, self.hparams.value_range, self.hparams.resolution)
+        self.train_dataset = ABCWITHNONOPTIMIZEDLATENTCODES(self.hparams.obj_dir, self.hparams.train_lmdb_path, self.hparams.value_range, self.hparams.resolution)
 
         print("\n setup: train_dataset len: ", len(self.train_dataset))
 
-        val_empty_list_file = "/graphics/scratch2/staff/zakeri/LMDBs/ABC_128cube_5KLMDB_Test_cuda/_WithnonOptimizedLatentCodes/empty_indices"
-        self.val_dataset = ABCWITHNONOPTIMIZEDLATENTCODESVAL(self.hparams.obj_dir, self.hparams.val_lmdb_path, val_empty_list_file, self.hparams.value_range, self.hparams.resolution)
+        # by mistake, we called the eval/test dataset as val dataset, while actual validation dataset is the first 100 objects in train dataset
+        # that is used to evaluate the performance of training like below.
+        # self.val_dataset = ShapeNetcorev1NormalizedTrainWithNonOptimizedLatentCodes(
+        #     self.hparams.mesh_path, self.hparams.points_to_sample, self.hparams.query_number, self.hparams.train_lmdb_path, self.hparams.value_range, self.hparams.resolution, self.hparams.examples_per_epoch
+        # )
+        # self.val_dataset.len = 100
+
+        self.val_dataset = ABCWITHNONOPTIMIZEDLATENTCODESVAL(self.hparams.obj_dir, self.hparams.val_lmdb_path, self.hparams.value_range, self.hparams.resolution)
 
         print("\n setup: val_dataset len: ", len(self.val_dataset))
 
@@ -333,7 +335,7 @@ class TransformerSDFtoSDFABCOUTSIDE(pl.LightningModule):
         )
 
     def configure_optimizers(self):
-        # we exclude fdecoer params from optimizer because it fucks them up, yes you head me!
+        # we exclude fdecoer params from optimizer.
         dont_train_those = []
         for k, _ in self.fdecoder.named_parameters():
             dont_train_those.append(k)
@@ -349,11 +351,6 @@ class TransformerSDFtoSDFABCOUTSIDE(pl.LightningModule):
             betas=(0.9, 0.99),
             weight_decay=0.05,
         )
-        # num_gpus = 3
-        # num_train_steps = len(self.train_dataset) // (self.hparams.batch_size * num_gpus) * self.trainer.max_epochs
-        # print("\n num_train_steps: ", num_train_steps)
-        # num_warmup_steps = int(self.hparams.warmup_ratio * num_train_steps)
-        # print("\n num_warmup_steps: ", num_warmup_steps)
 
         lr_scheduler = {
             "scheduler": get_cosine_schedule_with_warmup(

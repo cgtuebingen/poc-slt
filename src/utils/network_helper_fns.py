@@ -7,7 +7,7 @@ class ConvBlock(pl.LightningModule):
         super(ConvBlock, self).__init__()
         self.conv = nn.Sequential(
             nn.Conv3d(ch_in, ch_out, kernel_size=k_size, stride=s_size, padding=p_size),
-            nn.BatchNorm3d(ch_out), #FIXME!!!!!!!!!!!!!!!!!!!!!!!!!
+            nn.BatchNorm3d(ch_out),
             nn.ReLU(inplace=True),
         )
     def forward(self, x_in: torch.Tensor) -> torch.Tensor:

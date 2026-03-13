@@ -60,9 +60,7 @@ def extract_object_id_from_file_name(list_of_file_names, metric_name: str) -> li
     for i in range(len(list_of_file_names)):
         file_name_path = list_of_file_names[i]
         file_name_str = os.path.basename(os.path.normpath(file_name_path))  # path =
-        # print("\n file_name :", file_name_str)
         num = re.findall(r'\d+', file_name_str)
-        # print("The numbers list is : " + str(num))
         if metric_name == "Fscore1%":
             object_indices_list.append(num[1])
         else:
@@ -88,7 +86,6 @@ def write_dict_eval_into_text(dict_data: dict, out_path: str, name: str) -> None
     eval_file_name = name + ".txt"
 
     keys = [key for key in dict_data.keys()]
-    # print("\n keys:", keys)
 
     if os.path.isdir(out_path):
         file_obj = open(os.path.join(out_path, eval_file_name), "w")

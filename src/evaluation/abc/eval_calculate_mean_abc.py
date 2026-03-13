@@ -1,10 +1,7 @@
 import os
 import torch
-import sys
 
-sys.path.append("....")
-
-from src.evaluation.abc.common_file_ABC import (
+from src.evaluation.abc.common_files_abc import (
     extract_files_with_given_extension_general,
     extract_broken_object_indices,
     extract_metric_results,

@@ -2,9 +2,7 @@
 # every case of this heuristic is chosen randomly in each training epoch
 # it is a mix of random masking given a masking ratio and custom cut
 
-import sys
 from einops import rearrange
-sys.path.append("....")
 import torch
 from src.utils import generate_random_mask as gr_mask
 
@@ -43,144 +41,90 @@ def mask_heuristic(masking_choice: int, masking_ratio: torch.float32, batch_size
 
         elif masking_choice == (random_masking_max + 2):
             all_bool[:, :, 1, :] = True
-            # num_true = torch.count_nonzero(all_bool)
-            # print("\n num_true: ", num_true)
 
         elif masking_choice == (random_masking_max + 3):
             all_bool[:, :, 2, :] = True
-            # num_true = torch.count_nonzero(all_bool)
-            # print("\n num_true: ", num_true)
 
         elif masking_choice == (random_masking_max + 4):
             all_bool[:, :, 3, :] = True
-            # num_true = torch.count_nonzero(all_bool)
-            # print("\n num_true: ", num_true)
 
         elif masking_choice == (random_masking_max + 5):
             all_bool[:, :, 0:2, :] = True  # top-half
-            # num_true = torch.count_nonzero(all_bool)
-            # print("\n num_true: ", num_true)
 
         elif masking_choice == (random_masking_max + 6):
             all_bool[:, :, 2:4, :] = True  # bottom-half
-            # num_true = torch.count_nonzero(all_bool)
-            # print("\n num_true: ", num_true)
 
         elif masking_choice == (random_masking_max + 7):
             all_bool[:, 0:2, 0:2, 0:2] = True  # "front-bottom-right"
-            # num_true = torch.count_nonzero(all_bool)
-            # print("\n num_true: ", num_true)
             all_bool = torch.logical_not(all_bool)
 
         elif masking_choice == (random_masking_max + 8):
             all_bool[:, 0:2, 0:2, 2:4] = True  # "back-bottom-right"
-            # num_true = torch.count_nonzero(all_bool)
-            # print("\n num_true: ", num_true)
             all_bool = torch.logical_not(all_bool)
 
         elif masking_choice == (random_masking_max + 9):
             all_bool[:, 0:2, 2:4, 0:2] = True  # "front-top-right"
-            # num_true = torch.count_nonzero(all_bool)
-            # print("\n num_true: ", num_true)
             all_bool = torch.logical_not(all_bool)
 
         elif masking_choice == (random_masking_max + 10):
             all_bool[:, 0:2, 2:4, 2:4] = True  # "back-top-right"
-            # num_true = torch.count_nonzero(all_bool)
-            # print("\n num_true: ", num_true)
             all_bool = torch.logical_not(all_bool)
 
         elif masking_choice == (random_masking_max + 11):
             all_bool[:, 2:4, 0:2, 0:2] = True  # "front-bottom-left"
-            # num_true = torch.count_nonzero(all_bool)
-            # print("\n num_true: ", num_true)
             all_bool = torch.logical_not(all_bool)
 
         elif masking_choice == (random_masking_max + 12):
             all_bool[:, 2:4, 0:2, 2:4] = True  # "back-bottom-left"
-            # num_true = torch.count_nonzero(all_bool)
-            # print("\n num_true: ", num_true)
             all_bool = torch.logical_not(all_bool)
 
         elif masking_choice == (random_masking_max + 13):
             all_bool[:, 2:4, 2:4, 0:2] = True  # "front-top-left"
-            # num_true = torch.count_nonzero(all_bool)
-            # print("\n num_true: ", num_true)
             all_bool = torch.logical_not(all_bool)
 
         elif masking_choice == (random_masking_max + 14):
             all_bool[:, 2:4, 2:4, 2:4] = True  # "back-top-left"
-            # num_true = torch.count_nonzero(all_bool)
-            # print("\n num_true: ", num_true)
             all_bool = torch.logical_not(all_bool)
 
         elif masking_choice == (random_masking_max + 15):
-            all_bool[:, 0:2, :, :] = True  # right half TODO: check this
-            # num_true = torch.count_nonzero(all_bool)
+            all_bool[:, 0:2, :, :] = True  # right half
             all_bool = torch.logical_not(all_bool)
-            # print("\n num_true: ", num_true)
 
         elif masking_choice == (random_masking_max + 16):
-            all_bool[:, 0, :, :] = True  # right half   TODO: check this
-            # num_true = torch.count_nonzero(all_bool)
+            all_bool[:, 0, :, :] = True  # right half
             all_bool = torch.logical_not(all_bool)
-            # print("\n num_true: ", num_true)
 
         elif masking_choice == (random_masking_max + 17):
-            all_bool[:, 1, :, :] = True  # right half   TODO: check this
-            # num_true = torch.count_nonzero(all_bool)
+            all_bool[:, 1, :, :] = True  # right half
             all_bool = torch.logical_not(all_bool)
-
-            # print("\n num_true: ", num_true)
 
         elif masking_choice == (random_masking_max + 18):
-            all_bool[:, 2, :, :] = True  # right half  TODO: check this
-            # num_true = torch.count_nonzero(all_bool)
+            all_bool[:, 2, :, :] = True  # right half
             all_bool = torch.logical_not(all_bool)
-
-            # print("\n num_true: ", num_true)
 
         elif masking_choice == (random_masking_max + 19):
-            all_bool[:, 3, :, :] = True  # right half  TODO: check this
-            # num_true = torch.count_nonzero(all_bool)
+            all_bool[:, 3, :, :] = True  # right half
             all_bool = torch.logical_not(all_bool)
-
-            # print("\n num_true: ", num_true)
 
         elif masking_choice == (random_masking_max + 20):
-            all_bool[:, :, :, 0:2] = True  # left half TODO: check this
-            # num_true = torch.count_nonzero(all_bool)
+            all_bool[:, :, :, 0:2] = True  # left half
             all_bool = torch.logical_not(all_bool)
-
-            # print("\n num_true: ", num_true)
 
         elif masking_choice == (random_masking_max + 21):
-            all_bool[:, :, :, 0] = True  # left half   TODO: check this
-            # num_true = torch.count_nonzero(all_bool)
+            all_bool[:, :, :, 0] = True  # left half
             all_bool = torch.logical_not(all_bool)
-
-            # print("\n num_true: ", num_true)
 
         elif masking_choice == (random_masking_max + 22):
-            all_bool[:, :, :, 1] = True  # left half   TODO: check this
-            # num_true = torch.count_nonzero(all_bool)
+            all_bool[:, :, :, 1] = True  # left half
             all_bool = torch.logical_not(all_bool)
-
-            # print("\n num_true: ", num_true)
 
         elif masking_choice == (random_masking_max + 23):
-            all_bool[:, :, :, 2] = True  # left half   TODO: check this
-            # num_true = torch.count_nonzero(all_bool)
+            all_bool[:, :, :, 2] = True  # left half
             all_bool = torch.logical_not(all_bool)
-
-            # print("\n num_true: ", num_true)
 
         elif masking_choice == (random_masking_max + 23):
-            all_bool[:, :, :, 3] = True  # left half  TODO: check this
-            # num_true = torch.count_nonzero(all_bool)
+            all_bool[:, :, :, 3] = True  # left half
             all_bool = torch.logical_not(all_bool)
-
-            # print("\n num_true: ", num_true)
 
         else:
             print("\n masking_choice: ", masking_choice)
@@ -192,14 +136,3 @@ def mask_heuristic(masking_choice: int, masking_ratio: torch.float32, batch_size
         print("\n masking_choice: ", masking_choice)
         raise RuntimeError("masking choice is invalid!")
     return mask_all_bool
-
-
-# if __name__ == "__main__":
-#     masking_choice = np.random.choice(25, 1)
-#
-#     masking_ratio = 0.4
-#     batch_size = 1
-#     number_of_sub_voxels = 64
-#     target_resolution = 32
-#     given_device = 'cuda:0'
-#     mask_heuristic(masking_choice, masking_ratio, batch_size, number_of_sub_voxels, target_resolution, given_device)

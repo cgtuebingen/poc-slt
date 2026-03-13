@@ -66,5 +66,4 @@ def map_folder_to_label(folder_name: str):
         '04554684': 'washing machine'}
     label = synsteIds_categories.get(folder_name)
     return label
-# if __name__ == "__main__":
-#     output = make_target(batch_size=2, num_classes=55)
+

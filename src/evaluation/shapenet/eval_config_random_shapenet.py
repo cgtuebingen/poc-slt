@@ -1,8 +1,7 @@
 import argparse
 import os
-import sys
 import torch
-sys.path.append("....")
+
 from src.evaluation.shapenet.eval_shapenet_random import EVALShapenet
 
 

@@ -1,7 +1,4 @@
-import numpy
 import numpy as np
-from typing import Optional
-
 import torch
 
 def subvdivide_voxel(original_voxel: np.array, target_resolution: int) -> np.array:
@@ -142,31 +139,3 @@ def extract_outside_sub_voxel_indices_from_voxel(sub_voxels: torch.bool) -> torc
     empty_indices = (torch.logical_not(pos))
     # print("\n empty_indices shape: ", empty_indices.shape)
     return empty_indices
-
-#-----------------------------------------------------------------------------
-    # N, target_resolution, target_resolution, target_resolution = sub_voxels.shape
-    # sub_voxels_reshaped = np.reshape(sub_voxels, [N, target_resolution, target_resolution, target_resolution])
-    # print("\n sub_voxels_reshaped:", sub_voxels_reshaped.shape)
-    # surface_contained_sub_voxels = []
-    # for v in range(sub_voxels_reshaped.shape[0]):
-    #     signs = np.signbit(sub_voxels_reshaped[v, :, :, :])
-    #
-    #     pos = np.any(signs)  # any bit set ==> at least one negative number
-    #     neg = np.array(not(np.all(signs)))  # not all bits set ==> not all numbers are negative
-    #     if ((pos) and (neg)):
-    #         surface_contained_sub_voxels.append(sub_voxels_reshaped[v, :, :, :])
-    #
-    # if (not(len(surface_contained_sub_voxels))):
-    #     print("\n the list is empty so the gt_sdf was either totally inside or totally outside!")
-    #     return None
-    #
-    # surface_contained_sub_voxels_tensor = np.stack(surface_contained_sub_voxels)
-    # # print("\n surface_contained_sub_voxels_tensor:", surface_contained_sub_voxels_tensor.shape)
-    # return surface_contained_sub_voxels_tensor
-
-# surface_contained_sub_voxels_tensor = extract_surface_contained_voxels(sub_voxels)
-# print("\n sub_voxels_reshaped:", len(surface_contained_sub_voxels_tensor))
-# print("\n sub_voxels_reshaped:", surface_contained_sub_voxels_tensor.shape)
-#
-# print("\n ")
-

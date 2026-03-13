@@ -1,6 +1,4 @@
-import sys
 from typing import Tuple, Any, Union
-sys.path.append("....")
 import torch
 from torch import nn
 import pytorch_lightning as pl
@@ -14,13 +12,9 @@ from src.utils import plot_march_fns as pmt_fns
 from src.utils import sub_voxel_related_fns as pp_fns
 from src.utils.positional_encoder_class import MYPositionalEncoder3D
 from src.utils import encoder_decoder_loading as ed
-from src.utils import L1_loss_fns as L1_fn
 from src.utils import generate_random_mask as gr_mask
 from src.utils.helper_fns import concatenate_for_given_dim
 
-# from Transformer.Attention.TransformerExperiments.clean_code.clean_code_experiments.fulldataset.completionstr2Experiments.regularTransformer_fulldataset_CAT_str2_32cube_withNonOptimizedLatentCodes import (
-#     TransformerSDFtoSDF,
-# )
 # --------------------------------------------------------------------------------------------------------------------------------------------------------
 class TransformerSDFtoSDFShapenetNormalized(pl.LightningModule):
     def __init__(
@@ -112,14 +106,14 @@ class TransformerSDFtoSDFShapenetNormalized(pl.LightningModule):
         # calculate scaled losses
         if True:
             transformer_output_sequence_shape = [transformer_output_sequence.shape[0], transformer_output_sequence.shape[1]]
-            (l1_loss_scaled, l1_loss_masked_scaled, l1_loss_non_masked_scaled) = L1_fn.scale_losses_noEmptymasking(
+            (l1_loss_scaled, l1_loss_masked_scaled, l1_loss_non_masked_scaled) = l_fn.scale_losses_noEmptymasking(
                 loss_dict, masked_bool, non_masked_bool, transformer_output_sequence_shape
             )
             loss_dict_scaled = {"l1_loss_masked": l1_loss_masked_scaled, "l1_loss_non_masked": l1_loss_non_masked_scaled}
 
         # weight losses
         if True:
-            (l1_loss_w, l1_loss_masked_w, l1_loss_non_masked_w) = L1_fn.weight_losses_noEmptymasking(
+            (l1_loss_w, l1_loss_masked_w, l1_loss_non_masked_w) = l_fn.weight_losses_noEmptymasking(
                 loss_dict_scaled, weight_masked=1.0, weight_non_masked=1.0
             )
 
@@ -301,6 +295,12 @@ class TransformerSDFtoSDFShapenetNormalized(pl.LightningModule):
         print("\n setup: train_dataset len: ", len(self.train_dataset))
 
         # by mistake, we called the eval/test dataset as val dataset, while actual validation dataset is the first 100 objects in train dataset
+        # that is used to evaluate the performance of training like below.
+        # self.val_dataset = ShapeNetcorev1NormalizedTrainWithNonOptimizedLatentCodes(
+        #     self.hparams.mesh_path, self.hparams.points_to_sample, self.hparams.query_number, self.hparams.train_lmdb_path, self.hparams.value_range, self.hparams.resolution, self.hparams.examples_per_epoch
+        # )
+        # self.val_dataset.len = 100
+
         self.val_dataset = ShapeNetcorev1NormalizedValWithNonOptimizedLatentCodes(
             self.hparams.mesh_path,
             self.hparams.points_to_sample,
