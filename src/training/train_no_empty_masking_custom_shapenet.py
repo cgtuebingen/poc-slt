@@ -24,7 +24,6 @@ from src.utils.positional_encoder_class import MYPositionalEncoder3D
 
 from src.utils import encoder_decoder_loading as ed
 from src.utils import mask_huristic as gr_mask
-from src.utils.helper_fns import concatenate_for_given_dim
 
 from src.training.train_no_empty_masking_shapenet import (
     TransformerSDFtoSDFShapenetNormalized,
@@ -272,11 +271,14 @@ class TransformerSDFtoSDFShapenetNormalizedNoEmptyMaskingCustom(pl.LightningModu
             z_positionally_encoded_re.shape
             == masked_non_optimized_non_latent_codes_reshaped_mapped.shape
         )
-        transformer_input_sequence = concatenate_for_given_dim(
-            z_positionally_encoded_re,
-            masked_non_optimized_non_latent_codes_reshaped_mapped,
-            cat_dim=2,
-        )
+
+        transformer_input_sequence = torch.cat(
+            (
+                z_positionally_encoded_re,
+                masked_non_optimized_non_latent_codes_reshaped_mapped,
+            ),
+            dim=2,
+        ).to(device=self.device)
         transformer_output_sequence = self.call_transformer_and_mapping_layers(
             transformer_input_sequence
         )

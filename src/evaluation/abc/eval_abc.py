@@ -1,12 +1,14 @@
+import os
+import sys
+root = os.path.abspath(os.path.join(os.path.dirname(sys.argv[0]), "../../../"))
 from typing import Tuple, Any, Union
 import torch
 from tqdm import tqdm
 from src.utils import sub_voxel_related_fns as pp_fns
 from src.utils.positional_encoder_class import MYPositionalEncoder3D
-
+import pickle
 # ----------------------------------------------------------------------------------------------------------------------------------------------------
 from src.utils import encoder_decoder_loading as ed
-from src.utils.helper_fns import concatenate_for_given_dim
 from src.training.train_no_empty_masking_custom_abc import (
     TransformerSDFtoSDFABCOUTSIDE,
 )
@@ -72,8 +74,10 @@ class EVALABC:
         self.num_samples = num_samples
         self.common_obj_dir = common_obj_dir
 
-        ABC_mesh_file_name_to_bbx_path = ".../data/mesh_file_names_to_bbx.pkl"
-        self.mesh_file_name_to_bbx = torch.load(ABC_mesh_file_name_to_bbx_path)
+        ABC_mesh_file_name_to_bbx_path = os.path.join(root, "data", "ABC",  "mesh_file_names_to_bbx", "data.pkl")
+        with open(ABC_mesh_file_name_to_bbx_path, "rb") as f:
+            self.mesh_file_name_to_bbx = pickle.load(f)
+        # self.mesh_file_name_to_bbx = torch.load(ABC_mesh_file_name_to_bbx_path, weights_only=False)
 
         if self.pre_trained:
             self.pre_trained_transformer = (
@@ -203,11 +207,14 @@ class EVALABC:
             z_positionally_encoded_re.shape
             == masked_non_optimized_non_latent_codes_reshaped_mapped.shape
         )
-        transformer_input_sequence = concatenate_for_given_dim(
-            z_positionally_encoded_re,
-            masked_non_optimized_non_latent_codes_reshaped_mapped,
-            cat_dim=2,
-        )
+
+        transformer_input_sequence = torch.cat(
+            (
+                z_positionally_encoded_re,
+                masked_non_optimized_non_latent_codes_reshaped_mapped,
+            ),
+            dim=2,
+        ).to(device=self.device)
         transformer_output_sequence = self.call_transformer_and_mapping_layers(
             transformer_input_sequence
         )

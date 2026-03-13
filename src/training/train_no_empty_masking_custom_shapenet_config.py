@@ -14,11 +14,11 @@ from train_no_empty_masking_custom_shapenet import (
 def main():
     parser = argparse.ArgumentParser()
     #  for SDFtoSDF
-    parser.add_argument("--points_to_sample", default=1024, type=int)  #
-    parser.add_argument("--query_number", default=1024, type=int)  #
-    parser.add_argument("--examples_per_epoch", default=1000, type=int)  #
+    parser.add_argument("--points_to_sample", default=1024, type=int)
+    parser.add_argument("--query_number", default=1024, type=int)
+    parser.add_argument("--examples_per_epoch", default=1000, type=int)
 
-    parser.add_argument("--latent_dim", default=512, type=int)  # 512
+    parser.add_argument("--latent_dim", default=512, type=int)  # 512*2*2*2
     parser.add_argument("--resolution", default=128, type=int)
     parser.add_argument("--target_resolution", default=32, type=int)
     parser.add_argument("--batch_size", default=64, type=int)

@@ -11,7 +11,7 @@ from src.evaluation.shapenet.common_files_shapenet import (
 )
 
 if __name__ == "__main__":
-    eval_dir = "/graphics/scratch2/staff/zakeri/tmp/eval/ev0/bottom_half/eval_dir/"
+    eval_dir = "/graphics/scratch2/staff/zakeri/tmp/eval/ev1/bottom_half/eval_dir/"
 
     eval_file_list = extract_files_with_given_extension_general(eval_dir, ".pkl")
 

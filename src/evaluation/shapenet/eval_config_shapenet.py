@@ -123,7 +123,7 @@ if __name__ == "__main__":
     eval_root = os.path.join("/graphics/scratch2/staff/zakeri/tmp/", "eval")
     checkpoint_root = os.path.join(version_root, "checkpoints")
 
-    eval_mode_dir = os.path.join(eval_root, "ev0", "bottom_half/")
+    eval_mode_dir = os.path.join(eval_root, "ev1", "bottom_half/")
     if not os.path.isdir(eval_mode_dir):
         os.makedirs(eval_mode_dir)
 

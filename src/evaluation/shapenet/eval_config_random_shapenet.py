@@ -125,7 +125,7 @@ if __name__ == "__main__":
 
     checkpoint_root = os.path.join(version_root, "checkpoints")
 
-    eval_mode_dir = os.path.join(eval_root, "ev0", "MR0.25/")
+    eval_mode_dir = os.path.join(eval_root, "ev1", "MR0.25/")
     if not os.path.isdir(eval_mode_dir):
         os.makedirs(eval_mode_dir)
 
