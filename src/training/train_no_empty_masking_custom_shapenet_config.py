@@ -6,7 +6,10 @@ from pytorch_lightning.callbacks import LearningRateMonitor
 from pytorch_lightning.strategies import DDPStrategy
 import pytorch_lightning as pl
 
-from train_no_empty_masking_custom_shapenet import TransformerSDFtoSDFShapenetNormalizedNoEmptyMaskingCustom
+from train_no_empty_masking_custom_shapenet import (
+    TransformerSDFtoSDFShapenetNormalizedNoEmptyMaskingCustom,
+)
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -64,9 +67,15 @@ def main():
     )
 
     # hparams for transformer
-    parser.add_argument("--layers", default=20, type=int)  # layers: Number of transformer layers.
-    parser.add_argument("--dim_size", default=512 * 4, type=int)  # Dimensionality of latent space in transformer.
-    parser.add_argument("--heads", default=16, type=int)  # heads: Number of attention heads.
+    parser.add_argument(
+        "--layers", default=20, type=int
+    )  # layers: Number of transformer layers.
+    parser.add_argument(
+        "--dim_size", default=512 * 4, type=int
+    )  # Dimensionality of latent space in transformer.
+    parser.add_argument(
+        "--heads", default=16, type=int
+    )  # heads: Number of attention heads.
     parser.add_argument("--pre_trained", default=True, type=bool)
     parser.add_argument("--masking_ratio", default=0.60, type=float)
 
@@ -77,7 +86,7 @@ def main():
     # print("\n num_warmup_steps: ", num_warmup_steps)
     #
     parser.add_argument("--num_warmup_steps", default=1000, type=int)
-    parser.add_argument("--num_training_steps",  default=1000000, type=int)
+    parser.add_argument("--num_training_steps", default=1000000, type=int)
 
     args = parser.parse_args()
     # write the checkpoints every 1000 steps
@@ -133,10 +142,10 @@ def main():
         val_check_interval=10000,
         check_val_every_n_epoch=None,
         default_root_dir="/graphics/scratch2/staff/zakeri/tmp/pocslt_test/train_log/",
-
     )
     trainer.fit(model)
     print("CUDA_VISIBLE_DEVICES", os.environ["CUDA_VISIBLE_DEVICES"])
+
 
 if __name__ == "__main__":
 

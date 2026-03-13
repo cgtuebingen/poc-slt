@@ -5,6 +5,7 @@ from positional_encodings.torch_encodings import (
 )
 from einops import rearrange
 
+
 class MYPositionalEncoder3D(pl.LightningModule):
     def __init__(self, channels):
         super(MYPositionalEncoder3D, self).__init__()
@@ -18,13 +19,14 @@ class MYPositionalEncoder3D(pl.LightningModule):
         W = shape_of_positions[3]
         Ch = shape_of_positions[4]
 
-        z = torch.zeros((batch_size, D, H, W, Ch), dtype=torch.float32, device=self.device)
+        z = torch.zeros(
+            (batch_size, D, H, W, Ch), dtype=torch.float32, device=self.device
+        )
         z_positionally_encoded = self.positional_encoder(z)
         del z
-        z_positionally_encoded_re = rearrange(z_positionally_encoded, "B D H W Ch -> B (D H W) Ch").to(self.device)
+        z_positionally_encoded_re = rearrange(
+            z_positionally_encoded, "B D H W Ch -> B (D H W) Ch"
+        ).to(self.device)
         del z_positionally_encoded
 
         return z_positionally_encoded_re
-
-
-

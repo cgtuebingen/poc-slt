@@ -1,8 +1,4 @@
 import os
-import sys
-
-sys.path.append("....")
-
 import torch
 from torch import nn
 import pytorch_lightning as pl

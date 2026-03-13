@@ -1,6 +1,7 @@
 import numpy as np
 import torch
 
+
 def subvdivide_voxel(original_voxel: np.array, target_resolution: int) -> np.array:
     """
     :param original_voxel:
@@ -15,20 +16,31 @@ def subvdivide_voxel(original_voxel: np.array, target_resolution: int) -> np.arr
     #
     # orig_tmp = (original_resolution ** 3)
     # target_tmp = (target_resolution ** 3)
-    N = int(original_resolution ** 3 / target_resolution ** 3)
+    N = int(original_resolution**3 / target_resolution**3)
     # print("\n number of sub-voxels: ", N)
-    sub_voxels = np.empty([N, target_resolution, target_resolution, target_resolution], device=torch.device('cuda'), dtype=torch.float32)
+    sub_voxels = np.empty(
+        [N, target_resolution, target_resolution, target_resolution],
+        device=torch.device("cuda"),
+        dtype=torch.float32,
+    )
 
     t = 0
     for x in range(0, original_resolution, target_resolution):
         for y in range(0, original_resolution, target_resolution):
             for z in range(0, original_resolution, target_resolution):
-                sub_voxels[t, :, :, :] = original_voxel[x: x + target_resolution, y: y + target_resolution, z: z + target_resolution]
+                sub_voxels[t, :, :, :] = original_voxel[
+                    x : x + target_resolution,
+                    y : y + target_resolution,
+                    z : z + target_resolution,
+                ]
                 t += 1
 
     return sub_voxels
 
-def subvdivide_voxel_with_batch(original_voxel: torch.Tensor, target_resolution: int) -> torch.Tensor:
+
+def subvdivide_voxel_with_batch(
+    original_voxel: torch.Tensor, target_resolution: int
+) -> torch.Tensor:
     """
     :param original_voxel:
         ground truth sdf voxel of size [B, original_resolustion, original_resolustion, original_resolustion] :e.x[128, 128, 128]
@@ -39,24 +51,38 @@ def subvdivide_voxel_with_batch(original_voxel: torch.Tensor, target_resolution:
         N is the number of sub-volumes with target_resolution exist in original_voxel
     """
     # FIXME, is it possible to implement this with reshape and not messh it up
-    B, original_resolution, original_resolution, original_resolution = original_voxel.shape
+    B, original_resolution, original_resolution, original_resolution = (
+        original_voxel.shape
+    )
 
     N = original_resolution // target_resolution
     N = N * N * N
     # print("\n number of sub-voxels: ", N)
-    sub_voxels = torch.empty((B, N, target_resolution, target_resolution, target_resolution), device=original_voxel.device, dtype=original_voxel.dtype)
+    sub_voxels = torch.empty(
+        (B, N, target_resolution, target_resolution, target_resolution),
+        device=original_voxel.device,
+        dtype=original_voxel.dtype,
+    )
 
     for b in range(B):
         t = 0
         for x in range(0, original_resolution, target_resolution):
             for y in range(0, original_resolution, target_resolution):
                 for z in range(0, original_resolution, target_resolution):
-                    #assert(t == z//target_resolution + y//target_resolution * original_resolution//target_resolution + x//target_resolution * original_resolution//target_resolution * original_resolution//target_resolution)
-                    sub_voxels[b, t, :, :, :] = original_voxel[b, x: x + target_resolution, y: y + target_resolution, z: z + target_resolution]
+                    # assert(t == z//target_resolution + y//target_resolution * original_resolution//target_resolution + x//target_resolution * original_resolution//target_resolution * original_resolution//target_resolution)
+                    sub_voxels[b, t, :, :, :] = original_voxel[
+                        b,
+                        x : x + target_resolution,
+                        y : y + target_resolution,
+                        z : z + target_resolution,
+                    ]
                     t += 1
     return sub_voxels
 
-def collect_sub_voxels_to_voxel_with_batch(sub_voxels: torch.Tensor, original_resolution: int) -> torch.Tensor:
+
+def collect_sub_voxels_to_voxel_with_batch(
+    sub_voxels: torch.Tensor, original_resolution: int
+) -> torch.Tensor:
     """
     :param original_voxel:
     :param target_resolution:
@@ -65,17 +91,36 @@ def collect_sub_voxels_to_voxel_with_batch(sub_voxels: torch.Tensor, original_re
     # FIXME, is it possible to implement this with reshape and not messh it up
     B, N, target_resolution, target_resolution, target_resolution = sub_voxels.shape
 
-    original_voxel = torch.empty((B, original_resolution, original_resolution, original_resolution), device=sub_voxels.device, dtype=sub_voxels.dtype)
+    original_voxel = torch.empty(
+        (B, original_resolution, original_resolution, original_resolution),
+        device=sub_voxels.device,
+        dtype=sub_voxels.dtype,
+    )
 
     for b in range(B):
         for t in range(0, N):
             # t = z + y * target_resolution + x * target_resolution * target_resolution
-            z = target_resolution * (t % (original_resolution//target_resolution))
-            y = target_resolution * ((t // (original_resolution//target_resolution)) % (original_resolution//target_resolution))
-            x = target_resolution * (t // ((original_resolution//target_resolution) * (original_resolution//target_resolution)))
-            #assert (t == z // target_resolution + y // target_resolution * original_resolution // target_resolution + x // target_resolution * original_resolution // target_resolution * original_resolution // target_resolution)
-            original_voxel[b, x: x + target_resolution, y: y + target_resolution, z: z + target_resolution] = sub_voxels[b, t, :, :, :]
+            z = target_resolution * (t % (original_resolution // target_resolution))
+            y = target_resolution * (
+                (t // (original_resolution // target_resolution))
+                % (original_resolution // target_resolution)
+            )
+            x = target_resolution * (
+                t
+                // (
+                    (original_resolution // target_resolution)
+                    * (original_resolution // target_resolution)
+                )
+            )
+            # assert (t == z // target_resolution + y // target_resolution * original_resolution // target_resolution + x // target_resolution * original_resolution // target_resolution * original_resolution // target_resolution)
+            original_voxel[
+                b,
+                x : x + target_resolution,
+                y : y + target_resolution,
+                z : z + target_resolution,
+            ] = sub_voxels[b, t, :, :, :]
     return original_voxel
+
 
 def extract_surface_contained_voxels(sub_voxels: np.array) -> np.array:
     """
@@ -93,6 +138,7 @@ def extract_surface_contained_voxels(sub_voxels: np.array) -> np.array:
     pos = np.logical_not(np.all(signs, axis=(1, 2, 3)))
 
     return sub_voxels[np.logical_and(pos, neg)]
+
 
 def extract_empty_sub_voxel_indices_from_voxel(sub_voxels: torch.bool) -> torch.bool:
     """
@@ -113,9 +159,10 @@ def extract_empty_sub_voxel_indices_from_voxel(sub_voxels: torch.bool) -> torch.
 
     pos = torch.logical_not(torch.all(torch.flatten(signs, 2), dim=2))
 
-    empty_indices = (torch.logical_not(torch.logical_and(pos, neg)))
+    empty_indices = torch.logical_not(torch.logical_and(pos, neg))
     # print("\n empty_indices shape: ", empty_indices.shape)
     return empty_indices
+
 
 def extract_outside_sub_voxel_indices_from_voxel(sub_voxels: torch.bool) -> torch.bool:
     """
@@ -136,6 +183,6 @@ def extract_outside_sub_voxel_indices_from_voxel(sub_voxels: torch.bool) -> torc
 
     pos = torch.logical_not(torch.all(torch.flatten(signs, 2), dim=2))
 
-    empty_indices = (torch.logical_not(pos))
+    empty_indices = torch.logical_not(pos)
     # print("\n empty_indices shape: ", empty_indices.shape)
     return empty_indices

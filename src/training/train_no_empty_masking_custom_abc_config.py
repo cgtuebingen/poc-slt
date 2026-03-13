@@ -6,6 +6,7 @@ from pytorch_lightning.callbacks import LearningRateMonitor
 import pytorch_lightning as pl
 from src.training.train_no_empty_masking_custom_abc import TransformerSDFtoSDFABCOUTSIDE
 
+
 def main():
     parser = argparse.ArgumentParser()
     #  for SDFtoSDF
@@ -56,9 +57,15 @@ def main():
         type=str,
     )
     # hparams for transformer
-    parser.add_argument("--layers", default=20, type=int)  # layers: Number of transformer layers.
-    parser.add_argument("--dim_size", default=512 * 4, type=int)  # Dimensionality of latent space in transformer.
-    parser.add_argument("--heads", default=16, type=int)  # heads: Number of attention heads.
+    parser.add_argument(
+        "--layers", default=20, type=int
+    )  # layers: Number of transformer layers.
+    parser.add_argument(
+        "--dim_size", default=512 * 4, type=int
+    )  # Dimensionality of latent space in transformer.
+    parser.add_argument(
+        "--heads", default=16, type=int
+    )  # heads: Number of attention heads.
     parser.add_argument("--pre_trained", default=True, type=bool)
     parser.add_argument("--masking_ratio", default=0.40, type=float)
 
@@ -69,7 +76,7 @@ def main():
     # print("\n num_warmup_steps: ", num_warmup_steps)
     #
     parser.add_argument("--num_warmup_steps", default=1000, type=int)
-    parser.add_argument("--num_training_steps",  default=1000000, type=int)
+    parser.add_argument("--num_training_steps", default=1000000, type=int)
 
     args = parser.parse_args()
     # write the checkpoints every 1000 steps
@@ -103,7 +110,7 @@ def main():
         masking_ratio=args.masking_ratio,
         transformer_checkpoint_path=args.transformer_checkpoint_path,
         num_warmup_steps=args.num_warmup_steps,
-        num_training_steps=args.num_training_steps
+        num_training_steps=args.num_training_steps,
     )
     # configure the pytorch-lightning trainer.
     trainer = pl.Trainer(

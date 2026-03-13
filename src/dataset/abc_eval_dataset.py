@@ -3,9 +3,11 @@ import torch
 import lmdb
 import msgpack
 import msgpack_numpy as m
+
 m.patch()
 import pytorch_lightning as pl
 import numpy as np
+
 
 # ------------------------------------------------------------------------------------------------------------------
 class ABCWITHNONOPTIMIZEDLATENTCODESVAL(pl.LightningDataModule):
@@ -21,12 +23,12 @@ class ABCWITHNONOPTIMIZEDLATENTCODESVAL(pl.LightningDataModule):
 
         self.empty_list = []
         empty_list_file = self.lmdb_path + "/empty_indices"
-        with open(empty_list_file, 'r') as file:
+        with open(empty_list_file, "r") as file:
             for line in file:
-                self.empty_list.append(int(line.rstrip('\n')))
+                self.empty_list.append(int(line.rstrip("\n")))
         print("\n len self.empty_list:", len(self.empty_list))
 
-        if (os.path.isdir(lmdb_path)):  # if the database exists already:
+        if os.path.isdir(lmdb_path):  # if the database exists already:
             print("\n LMDB exits")
             with lmdb.open(
                 lmdb_path,
@@ -40,16 +42,21 @@ class ABCWITHNONOPTIMIZEDLATENTCODESVAL(pl.LightningDataModule):
                 with my_lmdb.begin(write=False) as lmdb_txn:  # read it
                     self.mesh_path = msgpack.unpackb(lmdb_txn.get(b"__obj_dir__"))
                     self.resolution = msgpack.unpackb(lmdb_txn.get(b"__resolution__"))
-                    self.keys = msgpack.unpackb(lmdb_txn.get(b"__keys__"))  # list of keys
+                    self.keys = msgpack.unpackb(
+                        lmdb_txn.get(b"__keys__")
+                    )  # list of keys
 
                     print("\n orig len keys:", len(self.keys))
                     self.keys = [x for x in self.keys if x not in self.empty_list]
                     print("\n non empty keys len: ", len(self.keys))
                     self.len = len(self.keys)
 
-                    if ( (self.resolution != resolution) or (self.obj_dir != obj_dir)):
+                    if (self.resolution != resolution) or (self.obj_dir != obj_dir):
                         print("\n warning: LMDB has different obj_dir:", self.obj_dir)
-                        print("\n warning: LMDB has different resolution:", self.resolution)
+                        print(
+                            "\n warning: LMDB has different resolution:",
+                            self.resolution,
+                        )
         else:  # if it does not exist
             raise ("\n LMDB does not exits")
 
@@ -72,7 +79,9 @@ class ABCWITHNONOPTIMIZEDLATENTCODESVAL(pl.LightningDataModule):
 
     def __getitem__(self, idx: int):
         if self.my_lmdb is None:  # if database object is none
-            self.my_lmdb = self.openLMDB(self.lmdb_path)  # create an object and open the database
+            self.my_lmdb = self.openLMDB(
+                self.lmdb_path
+            )  # create an object and open the database
 
         if idx < 0 or idx is None:
             raise "invalid item index"
@@ -81,12 +90,16 @@ class ABCWITHNONOPTIMIZEDLATENTCODESVAL(pl.LightningDataModule):
             idx = idx % len(self.keys)  # reduce the idx to the len(keys)
         key = self.keys[idx]
 
-        with self.my_lmdb.begin(write=False) as lmdb_txn:  # reading what is written before using the object
+        with self.my_lmdb.begin(
+            write=False
+        ) as lmdb_txn:  # reading what is written before using the object
             raw_example = msgpack.unpackb(lmdb_txn.get(msgpack.packb(key)))
             object_index = raw_example["object_index"]
             obj_file_name = raw_example["obj_file_name"]
             gt_sdf_voxel = np.array(raw_example["gt_sdf_voxel"], copy=True)
-            non_optimized_latent_code = np.array(raw_example["non_optimized_latent_code"], copy=True)
+            non_optimized_latent_code = np.array(
+                raw_example["non_optimized_latent_code"], copy=True
+            )
             # std = np.array(raw_example["std"], copy=True)
             # var = np.array(raw_example["var"], copy=True)
             # scale = raw_example["scale"]
@@ -106,8 +119,12 @@ class ABCWITHNONOPTIMIZEDLATENTCODESVAL(pl.LightningDataModule):
         # assert gt_sdf_voxel.shape == (128, 128, 128)
         # assert non_optimized_latent_code.shape == (64, 512, 2, 2, 2)
 
-        gt_sdf_voxel_copy: torch.Tensor = torch.from_numpy(gt_sdf_voxel).to(dtype=torch.float32)
-        non_optimized_latent_code_copy: torch.Tensor = torch.from_numpy(non_optimized_latent_code).to(dtype=torch.float32)
+        gt_sdf_voxel_copy: torch.Tensor = torch.from_numpy(gt_sdf_voxel).to(
+            dtype=torch.float32
+        )
+        non_optimized_latent_code_copy: torch.Tensor = torch.from_numpy(
+            non_optimized_latent_code
+        ).to(dtype=torch.float32)
         # var_copy: torch.Tensor = torch.from_numpy(var).to(dtype=torch.float32)
         # std_copy: torch.Tensor = torch.from_numpy(std).to(dtype=torch.float32)
 

@@ -3,26 +3,56 @@ import torch
 from typing import Tuple, Any
 from src.p_vae import distribution
 
-def prep_32cube_sub_voxels_and_encode(fencoder, sub_voxels: torch.Tensor, number_of_sub_voxels: int, latent_dim: int, target_resolution: int, train: bool) -> Tuple[torch.Tensor, Any, Any]:
+
+def prep_32cube_sub_voxels_and_encode(
+    fencoder,
+    sub_voxels: torch.Tensor,
+    number_of_sub_voxels: int,
+    latent_dim: int,
+    target_resolution: int,
+    train: bool,
+) -> Tuple[torch.Tensor, Any, Any]:
     #  Prep for Encoding--------------------------------------------------------------------------------------------------------------------
     batch_size = sub_voxels.shape[0]
     sub_voxels_reshaped = rearrange(sub_voxels.clone(), "A B C D E -> (A B) 1 C D E")
-    assert sub_voxels_reshaped.shape == (batch_size * number_of_sub_voxels, 1, target_resolution, target_resolution, target_resolution)
+    assert sub_voxels_reshaped.shape == (
+        batch_size * number_of_sub_voxels,
+        1,
+        target_resolution,
+        target_resolution,
+        target_resolution,
+    )
     # encoder------------------------------------------------------------------------------------------------------------------------------
     with torch.no_grad():
         sub_voxels_encoded = fencoder(sub_voxels_reshaped)
     # del sub_voxels_reshaped
-    sub_voxels_encoded_rearranged = prepare_encoded_voxel_for_sampling(number_of_sub_voxels, sub_voxels_encoded, latent_dim, batch_size=batch_size)
+    sub_voxels_encoded_rearranged = prepare_encoded_voxel_for_sampling(
+        number_of_sub_voxels, sub_voxels_encoded, latent_dim, batch_size=batch_size
+    )
     # sampling------------------------------------------------------------------------------------------------------------------------------
-    latent_code_sampled, std, var = sample_from_distribution(number_of_sub_voxels, sub_voxels_encoded_rearranged, batch_size, train)
+    latent_code_sampled, std, var = sample_from_distribution(
+        number_of_sub_voxels, sub_voxels_encoded_rearranged, batch_size, train
+    )
     # del sub_voxels_encoded_rearranged
-    latent_codes = latent_code_sampled.reshape([batch_size * number_of_sub_voxels, latent_dim, 2, 2, 2])  # [1024, 2, 2, 2] -> [512, 2, 2, 2]
+    latent_codes = latent_code_sampled.reshape(
+        [batch_size * number_of_sub_voxels, latent_dim, 2, 2, 2]
+    )  # [1024, 2, 2, 2] -> [512, 2, 2, 2]
 
     # Prepare for forward----------------------------------------------------------------------------------------------------------------
-    latent_codes_reshaped = latent_codes.reshape(batch_size, number_of_sub_voxels, latent_dim, 2, 2, 2)
-    assert latent_codes_reshaped.shape == (batch_size, number_of_sub_voxels, latent_dim, 2, 2, 2)  # input
+    latent_codes_reshaped = latent_codes.reshape(
+        batch_size, number_of_sub_voxels, latent_dim, 2, 2, 2
+    )
+    assert latent_codes_reshaped.shape == (
+        batch_size,
+        number_of_sub_voxels,
+        latent_dim,
+        2,
+        2,
+        2,
+    )  # input
 
     return (latent_codes_reshaped, std, var)
+
 
 def prepare_encoded_voxel_for_sampling(
     number_of_sub_voxels,

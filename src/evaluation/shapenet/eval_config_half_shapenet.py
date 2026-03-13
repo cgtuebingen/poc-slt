@@ -4,7 +4,10 @@ import os
 from src.evaluation.shapenet.eval_shapenet import EVALShapenet
 import torch
 
-def main_half(eval_mode_dir: str, obj_dir: str, common_obj_dir: str, checkpoint_mode_path: str):
+
+def main_half(
+    eval_mode_dir: str, obj_dir: str, common_obj_dir: str, checkpoint_mode_path: str
+):
     parser = argparse.ArgumentParser()
     #  for SDFtoSDF
     parser.add_argument("--latent_dim", default=512, type=int)  # 512
@@ -43,7 +46,9 @@ def main_half(eval_mode_dir: str, obj_dir: str, common_obj_dir: str, checkpoint_
 
     # eval
     # for octant used in the paper: "front-bottom-right"
-    parser.add_argument("--custom_mask_mode", default="bottom-half", type=str, required=False)
+    parser.add_argument(
+        "--custom_mask_mode", default="bottom-half", type=str, required=False
+    )
     parser.add_argument("--device", default="cuda:0", type=str)
     parser.add_argument("--num_samples", default=1000000, type=int)
 
@@ -122,16 +127,18 @@ if __name__ == "__main__":
     if not os.path.isdir(eval_mode_dir):
         os.makedirs(eval_mode_dir)
 
-    eval_dir = os.path.join(eval_mode_dir, 'eval_dir/')
+    eval_dir = os.path.join(eval_mode_dir, "eval_dir/")
     if not os.path.isdir(eval_dir):
         os.mkdir(eval_dir)
     obj_dir = os.path.join(eval_mode_dir, "obj_dir/")
     if not os.path.isdir(obj_dir):
         os.mkdir(obj_dir)
-    common_obj_dir = os.path.join(eval_mode_dir, 'common_obj_dir/')
+    common_obj_dir = os.path.join(eval_mode_dir, "common_obj_dir/")
     if not os.path.isdir(common_obj_dir):
         os.mkdir(common_obj_dir)
     # used for evaluation of transformer
-    checkpoint_mode_path = os.path.join(checkpoint_root, "saved/" + "checkpoint-epoch=2133-loss=0.000.ckpt")
+    checkpoint_mode_path = os.path.join(
+        checkpoint_root, "saved/" + "checkpoint-epoch=2133-loss=0.000.ckpt"
+    )
 
     main_half(eval_dir, obj_dir, common_obj_dir, checkpoint_mode_path)

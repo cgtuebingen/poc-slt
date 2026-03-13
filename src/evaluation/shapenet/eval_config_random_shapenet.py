@@ -5,7 +5,9 @@ import torch
 from src.evaluation.shapenet.eval_shapenet_random import EVALShapenet
 
 
-def main_random(eval_mode_dir: str, obj_dir: str, common_obj_dir: str, checkpoint_mode_path: str):
+def main_random(
+    eval_mode_dir: str, obj_dir: str, common_obj_dir: str, checkpoint_mode_path: str
+):
     parser = argparse.ArgumentParser()
     #  for SDFtoSDF
     parser.add_argument("--latent_dim", default=512, type=int)  # 512
@@ -43,7 +45,9 @@ def main_random(eval_mode_dir: str, obj_dir: str, common_obj_dir: str, checkpoin
     parser.add_argument("--pre_trained", default=True, type=bool)
 
     # eval
-    parser.add_argument("--masking_ratio", default=0.25, type=float, required=False)  # 0.25, 0.50, 0.50 or whatever
+    parser.add_argument(
+        "--masking_ratio", default=0.25, type=float, required=False
+    )  # 0.25, 0.50, 0.50 or whatever
     parser.add_argument("--device", default="cuda:0", type=str)
     parser.add_argument("--num_samples", default=1000000, type=int)
 
@@ -125,16 +129,18 @@ if __name__ == "__main__":
     if not os.path.isdir(eval_mode_dir):
         os.makedirs(eval_mode_dir)
 
-    eval_dir = os.path.join(eval_mode_dir, 'eval_dir/')
+    eval_dir = os.path.join(eval_mode_dir, "eval_dir/")
     if not os.path.isdir(eval_dir):
         os.mkdir(eval_dir)
     obj_dir = os.path.join(eval_mode_dir, "obj_dir/")
     if not os.path.isdir(obj_dir):
         os.mkdir(obj_dir)
-    common_obj_dir = os.path.join(eval_mode_dir, 'common_obj_dir/')
+    common_obj_dir = os.path.join(eval_mode_dir, "common_obj_dir/")
     if not os.path.isdir(common_obj_dir):
         os.mkdir(common_obj_dir)
     # used for evaluation of transformer
-    checkpoint_mode_path = os.path.join(checkpoint_root, "saved", "checkpoint-epoch=2133-loss=0.000.ckpt")
+    checkpoint_mode_path = os.path.join(
+        checkpoint_root, "saved", "checkpoint-epoch=2133-loss=0.000.ckpt"
+    )
 
     main_random(eval_dir, obj_dir, common_obj_dir, checkpoint_mode_path)

@@ -7,12 +7,21 @@ import torch
 from src.utils import generate_random_mask as gr_mask
 
 
-def mask_heuristic(masking_choice: int, masking_ratio: torch.float32, batch_size, number_of_sub_voxels, target_resolution, given_device):
-    assert (masking_choice <= 34)
+def mask_heuristic(
+    masking_choice: int,
+    masking_ratio: torch.float32,
+    batch_size,
+    number_of_sub_voxels,
+    target_resolution,
+    given_device,
+):
+    assert masking_choice <= 34
     random_masking_max = 11
     if (masking_choice <= random_masking_max) and (0 <= masking_choice):
         # do random_masking
-        mask_all_bool, num_mask_all = gr_mask.generate_random_mask_for_all(number_of_sub_voxels, batch_size, masking_ratio=masking_ratio)
+        mask_all_bool, num_mask_all = gr_mask.generate_random_mask_for_all(
+            number_of_sub_voxels, batch_size, masking_ratio=masking_ratio
+        )
 
     elif masking_choice > random_masking_max:
         if target_resolution == 32:
@@ -32,7 +41,16 @@ def mask_heuristic(masking_choice: int, masking_ratio: torch.float32, batch_size
         else:
             raise "target resolution is not valid for our setup!"
         # set to zero
-        all_bool = torch.zeros([batch_size, number_of_sub_voxels_x, number_of_sub_voxels_y, number_of_sub_voxels_z], dtype=torch.bool, device=given_device)
+        all_bool = torch.zeros(
+            [
+                batch_size,
+                number_of_sub_voxels_x,
+                number_of_sub_voxels_y,
+                number_of_sub_voxels_z,
+            ],
+            dtype=torch.bool,
+            device=given_device,
+        )
 
         if masking_choice == (random_masking_max + 1):
             all_bool[:, :, 0, :] = True

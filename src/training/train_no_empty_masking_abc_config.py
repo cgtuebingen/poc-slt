@@ -6,6 +6,8 @@ from pytorch_lightning.callbacks import LearningRateMonitor
 import pytorch_lightning as pl
 
 from src.training.train_no_empty_masking_abc import TransformerSDFtoSDFABCOUTSIDE
+
+
 def main():
     parser = argparse.ArgumentParser()
     #  for SDFtoSDF
@@ -55,9 +57,15 @@ def main():
         type=str,
     )
     # hparams for transformer
-    parser.add_argument("--layers", default=20, type=int)  # layers: Number of transformer layers.
-    parser.add_argument("--dim_size", default=512 * 4, type=int)  # Dimensionality of latent space in transformer.
-    parser.add_argument("--heads", default=16, type=int)  # heads: Number of attention heads.
+    parser.add_argument(
+        "--layers", default=20, type=int
+    )  # layers: Number of transformer layers.
+    parser.add_argument(
+        "--dim_size", default=512 * 4, type=int
+    )  # Dimensionality of latent space in transformer.
+    parser.add_argument(
+        "--heads", default=16, type=int
+    )  # heads: Number of attention heads.
     parser.add_argument("--pre_trained", default=True, type=bool)
     parser.add_argument("--masking_ratio", default=0.40, type=float)
 
@@ -68,7 +76,7 @@ def main():
     # print("\n num_warmup_steps: ", num_warmup_steps)
     #
     parser.add_argument("--num_warmup_steps", default=1000, type=int)
-    parser.add_argument("--num_training_steps",  default=1000000, type=int)
+    parser.add_argument("--num_training_steps", default=1000000, type=int)
 
     args = parser.parse_args()
     # write the checkpoints every 1000 steps
@@ -110,7 +118,9 @@ def main():
         accelerator="gpu",
         devices=-1,
         num_nodes=1,
-        strategy=DDPStrategy(process_group_backend="NCCl", find_unused_parameters=True),  # NCCL tends to be unreliable for some reason
+        strategy=DDPStrategy(
+            process_group_backend="NCCl", find_unused_parameters=True
+        ),  # NCCL tends to be unreliable for some reason
         max_epochs=700,
         log_every_n_steps=100,
         detect_anomaly=True,
@@ -121,7 +131,6 @@ def main():
         # precision="bf16",
         # gradient_clip_val=0.5,
         # resume_from_checkpoint=""
-
     )
     trainer.fit(model)
     print("CUDA_VISIBLE_DEVICES", os.environ["CUDA_VISIBLE_DEVICES"])

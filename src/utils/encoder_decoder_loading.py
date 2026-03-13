@@ -1,10 +1,15 @@
 from src.utils import frozen_encoder_decoder as fe
 
+
 def load_encoder_from_checkpoint(pre_trained_model, latent_dim):
     params_encoder = pre_trained_model.encoder
     params_encoder.freeze()
     params_encoder.train(False)
-    fencoder = fe.FVSEncoder(params_encoder.to(pre_trained_model.device), latent_dim).to(pre_trained_model.device).train(False)
+    fencoder = (
+        fe.FVSEncoder(params_encoder.to(pre_trained_model.device), latent_dim)
+        .to(pre_trained_model.device)
+        .train(False)
+    )
     fencoder.train(False)
     fencoder.freeze()
     # it is sequential, and the element 1 is always the batch_norm
@@ -36,12 +41,14 @@ def load_decoder_from_checkpoint(pre_trained_model, latent_dim):
     params_decoder = pre_trained_model.decoder
     params_decoder.freeze()
     params_decoder.train(False)
-    fdecoder = fe.FVSDecoder(params_decoder.to(pre_trained_model.device), latent_dim).to(pre_trained_model.device).train(False)
+    fdecoder = (
+        fe.FVSDecoder(params_decoder.to(pre_trained_model.device), latent_dim)
+        .to(pre_trained_model.device)
+        .train(False)
+    )
     fdecoder.train(False)
     fdecoder.freeze()
     fdecoder.batchNorm3d5.track_running_stats = False
     fdecoder.batchNorm3d6.track_running_stats = False
     fdecoder.batchnorm3d7.track_running_stats = False
     return fdecoder
-
-

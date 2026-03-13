@@ -1,5 +1,6 @@
 import os
 import pickle
+
 shapenetcorev1_subset_cats = {
     "04530566": "watercraft",
     "04090263": "file",
@@ -90,7 +91,10 @@ synsteIds_categories_extracted_shapent13catgories = {
     "watercraft": 53,
 }
 
-def extract_eval_split_list(filelist_dir: str, val_split_list_dir: str, ext: str = "_test.lst"):
+
+def extract_eval_split_list(
+    filelist_dir: str, val_split_list_dir: str, ext: str = "_test.lst"
+):
     all_files = os.listdir(filelist_dir)
     print(all_files)
     ext = "_test.lst"
@@ -123,7 +127,9 @@ def extract_eval_split_list(filelist_dir: str, val_split_list_dir: str, ext: str
             print("dictionary saved successfully to file")
 
 
-def extract_train_split_list(filelist_dir: str, train_split_list_dir: str, ext: str = "_train.lst"):
+def extract_train_split_list(
+    filelist_dir: str, train_split_list_dir: str, ext: str = "_train.lst"
+):
     all_files = os.listdir(filelist_dir)
     print(all_files)
     ext = "_train.lst"
@@ -154,6 +160,7 @@ def extract_train_split_list(filelist_dir: str, train_split_list_dir: str, ext: 
         with open(current_dict_name, "wb") as fp:
             pickle.dump(folder_name_dict, fp)
             print("dictionary saved successfully to file")
+
 
 # if __name__ == "__main__":
 #     filelist_dir = "/graphics/scratch2/staff/zakeri/filelist_val_and_train_shapenetcorev1_offical_splits/filelists/"

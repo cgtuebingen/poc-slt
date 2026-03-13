@@ -2,7 +2,14 @@ import torch
 import numpy as np
 from src.utils.plot_voxel import plot_v
 
-def generate_plot_for_given_dict_of_items(dict_of_items: dict, resolution: torch.int32, number_of_slices: torch.int32, plot_scale_factor: torch.int32, plot_range: list[float]) -> list:
+
+def generate_plot_for_given_dict_of_items(
+    dict_of_items: dict,
+    resolution: torch.int32,
+    number_of_slices: torch.int32,
+    plot_scale_factor: torch.int32,
+    plot_range: list[float],
+) -> list:
     number_of_plots_to_generate = len(dict_of_items.items())
     keys = [key for key in dict_of_items.keys()]
     plots = []
@@ -21,11 +28,21 @@ def generate_plot_for_given_dict_of_items(dict_of_items: dict, resolution: torch
             plot_range,
         )
         plots.append(image_list)
-    assert (len(plots) == number_of_plots_to_generate)
+    assert len(plots) == number_of_plots_to_generate
     return plots
-def generate_plot_for_everything(number_of_slices: torch.int32, plot_scale_factor: torch.int32, resolution:torch.int32,collected_32cubes_array: np.ndarray, collected_sub_voxels_decoded_non_optimized_array: np.ndarray,
-                                 collected_sub_voxels_decoded_optimized_array: np.ndarray, collected_decoded_masked_optimized_latent_codes_array: np.ndarray,
-                                 transformer_output_sequence_up_collected_32cubes_collected_32cubes_array: np.ndarray, diff_transformer_output_and_optimized_latent_code_array: np.ndarray):
+
+
+def generate_plot_for_everything(
+    number_of_slices: torch.int32,
+    plot_scale_factor: torch.int32,
+    resolution: torch.int32,
+    collected_32cubes_array: np.ndarray,
+    collected_sub_voxels_decoded_non_optimized_array: np.ndarray,
+    collected_sub_voxels_decoded_optimized_array: np.ndarray,
+    collected_decoded_masked_optimized_latent_codes_array: np.ndarray,
+    transformer_output_sequence_up_collected_32cubes_collected_32cubes_array: np.ndarray,
+    diff_transformer_output_and_optimized_latent_code_array: np.ndarray,
+):
     # plot true-gt ------------------------------
     (
         gt_image_list,
@@ -87,14 +104,24 @@ def generate_plot_for_everything(number_of_slices: torch.int32, plot_scale_facto
         resolution // plot_scale_factor,
         "Diff_transformer_output_vs_optimized_latent_code",
     )
-    return gt_image_list, non_optimized_latent_codes_image_list, optimized_latent_codes_image_list, masked_latent_codes_image_list, transformer_output_image_list, diff_transformer_output_vs_optimized_latent_code_image_list
+    return (
+        gt_image_list,
+        non_optimized_latent_codes_image_list,
+        optimized_latent_codes_image_list,
+        masked_latent_codes_image_list,
+        transformer_output_image_list,
+        diff_transformer_output_vs_optimized_latent_code_image_list,
+    )
+
 
 def plot_for_given_dict_of_items(slice_index: torch.int32, list_of_items: list):
     image_numpy_list = []
     for i in range(len(list_of_items)):
         item_image_list = list_of_items[i]
         item_image_list_slice = item_image_list[slice_index]
-        image_numpy = torch.as_tensor(item_image_list_slice[:, :, :3]).permute([2, 0, 1])
+        image_numpy = torch.as_tensor(item_image_list_slice[:, :, :3]).permute(
+            [2, 0, 1]
+        )
         image_numpy_list.append(image_numpy)
 
     plot_to_be_drawn = torch.cat([x.cuda() for x in image_numpy_list], -1)
@@ -108,26 +135,37 @@ def plot_everything(
     masked_latent_codes_image_list: list,
     transformer_output_image_list: list,
     diff_transformer_output_vs_optimized_latent_code_image_list: list,
-
 ):
     gt_image_list_slice = gt_image_list[slice_index]
     image_gt = torch.as_tensor(gt_image_list_slice[:, :, :3]).permute([2, 0, 1])
     del gt_image_list_slice
 
-    non_optimized_latent_codes_slice = non_optimized_latent_codes_image_list[slice_index]
-    image_non_optim = torch.as_tensor(non_optimized_latent_codes_slice[:, :, :3]).permute([2, 0, 1])
+    non_optimized_latent_codes_slice = non_optimized_latent_codes_image_list[
+        slice_index
+    ]
+    image_non_optim = torch.as_tensor(
+        non_optimized_latent_codes_slice[:, :, :3]
+    ).permute([2, 0, 1])
     del non_optimized_latent_codes_slice
 
     masked_latent_codes_slice = masked_latent_codes_image_list[slice_index]
-    image_masked = torch.as_tensor(masked_latent_codes_slice[:, :, :3]).permute([2, 0, 1])
+    image_masked = torch.as_tensor(masked_latent_codes_slice[:, :, :3]).permute(
+        [2, 0, 1]
+    )
     del masked_latent_codes_slice
 
     transformer_output_image_slice = transformer_output_image_list[slice_index]
-    image_transformer = torch.as_tensor(transformer_output_image_slice[:, :, :3]).permute([2, 0, 1])
+    image_transformer = torch.as_tensor(
+        transformer_output_image_slice[:, :, :3]
+    ).permute([2, 0, 1])
     del transformer_output_image_slice
 
-    diff_transformer_output_vs_optimized_latent_code_image_slice = diff_transformer_output_vs_optimized_latent_code_image_list[slice_index]
-    image_diff = torch.as_tensor(diff_transformer_output_vs_optimized_latent_code_image_slice[:, :, :3]).permute([2, 0, 1])
+    diff_transformer_output_vs_optimized_latent_code_image_slice = (
+        diff_transformer_output_vs_optimized_latent_code_image_list[slice_index]
+    )
+    image_diff = torch.as_tensor(
+        diff_transformer_output_vs_optimized_latent_code_image_slice[:, :, :3]
+    ).permute([2, 0, 1])
     del diff_transformer_output_vs_optimized_latent_code_image_slice
 
     plot = torch.cat(

@@ -1,7 +1,6 @@
 from typing import Tuple, Any, Union
 import torch
 
-
 from torch import nn
 import pytorch_lightning as pl
 from src.dataset.abc_train_dataset import ABCWITHNONOPTIMIZEDLATENTCODES
@@ -13,11 +12,15 @@ from src.utils import loss_helper_fns as l_fn
 from src.utils import plot_march_fns as pmt_fns
 from src.utils import sub_voxel_related_fns as pp_fns
 from src.utils.positional_encoder_class import MYPositionalEncoder3D
+
 # ----------------------------------------------------------------------------------------------------------------------------------------------------
 from src.utils import encoder_decoder_loading as ed
 from src.utils import generate_random_mask as gr_mask
 from src.utils.helper_fns import concatenate_for_given_dim
-from src.training.train_no_empty_masking_custom_shapenet import TransformerSDFtoSDFShapenetNormalizedNoEmptyMaskingCustom
+from src.training.train_no_empty_masking_custom_shapenet import (
+    TransformerSDFtoSDFShapenetNormalizedNoEmptyMaskingCustom,
+)
+
 
 # --------------------------------------------------------------------------------------------------------------------------------------------------------
 class TransformerSDFtoSDFABCOUTSIDE(pl.LightningModule):
@@ -44,7 +47,6 @@ class TransformerSDFtoSDFABCOUTSIDE(pl.LightningModule):
         transformer_checkpoint_path: str,
         num_warmup_steps: int = 1000,
         num_training_steps: int = 1000000,
-
     ):
         super(TransformerSDFtoSDFABCOUTSIDE, self).__init__()
         self.save_hyperparameters()
@@ -58,17 +60,34 @@ class TransformerSDFtoSDFABCOUTSIDE(pl.LightningModule):
             pre_trained_model.freeze()
             pre_trained_model.train(False)
 
-            self.fdecoder = ed.load_decoder_from_checkpoint(pre_trained_model, latent_dim)
+            self.fdecoder = ed.load_decoder_from_checkpoint(
+                pre_trained_model, latent_dim
+            )
             self.fdecoder.to(self.device)
 
             pre_trained_transformer_checkpoint = TransformerSDFtoSDFShapenetNormalizedNoEmptyMaskingCustom.load_from_checkpoint(
-                self.hparams.transformer_checkpoint_path, vae_checkpoint_path=vae_checkpoint_path, transformer_checkpoint_path=self.hparams.transformer_checkpoint_path,
-                **{'mesh_path': None, 'points_to_sample': None, 'query_number': None, 'examples_per_epoch': None},
-                map_location='cpu', strict=False
-            ).to(self.device)
-            self.regular_transformer = pre_trained_transformer_checkpoint.regular_transformer
+                self.hparams.transformer_checkpoint_path,
+                vae_checkpoint_path=vae_checkpoint_path,
+                transformer_checkpoint_path=self.hparams.transformer_checkpoint_path,
+                **{
+                    "mesh_path": None,
+                    "points_to_sample": None,
+                    "query_number": None,
+                    "examples_per_epoch": None,
+                },
+                map_location="cpu",
+                strict=False
+            ).to(
+                self.device
+            )
+            self.regular_transformer = (
+                pre_trained_transformer_checkpoint.regular_transformer
+            )
             del pre_trained_transformer_checkpoint
-            print("\n regular transformer is initialized  from pretrained-transformer num_layer:", self.regular_transformer.num_layers, )
+            print(
+                "\n regular transformer is initialized  from pretrained-transformer num_layer:",
+                self.regular_transformer.num_layers,
+            )
 
         self.num_warmup_steps = num_warmup_steps
         self.num_training_steps = num_training_steps
@@ -76,21 +95,50 @@ class TransformerSDFtoSDFABCOUTSIDE(pl.LightningModule):
         self.l1_loss = nn.L1Loss(reduction="mean")
 
         number_of_sub_voxels = self.hparams.resolution // self.hparams.target_resolution
-        self.number_of_sub_voxels = number_of_sub_voxels * number_of_sub_voxels * number_of_sub_voxels
+        self.number_of_sub_voxels = (
+            number_of_sub_voxels * number_of_sub_voxels * number_of_sub_voxels
+        )
 
-        self.my_selected_indices = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]  # only for the purpose of visualization and save time
+        self.my_selected_indices = [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+        ]  # only for the purpose of visualization and save time
 
         # generator = torch.Generator(device=self.device)
         # generator.manual_seed(123)
         self.penc_channels = 8 * self.hparams.latent_dim
         self.positional_encoder_3d = MYPositionalEncoder3D(self.penc_channels)
 
-        self.constant_learnable_mask_tensors = torch.nn.Parameter(torch.randn([self.hparams.latent_dim, 2, 2, 2], dtype=torch.float32, device=self.device))  # , generator=generator
-        self.constant_learnable_mask_tensors_for_empty_voxels = torch.nn.Parameter(torch.randn([self.hparams.latent_dim, 2, 2, 2], dtype=torch.float32, device=self.device))  # , generator=generator
+        self.constant_learnable_mask_tensors = torch.nn.Parameter(
+            torch.randn(
+                [self.hparams.latent_dim, 2, 2, 2],
+                dtype=torch.float32,
+                device=self.device,
+            )
+        )  # , generator=generator
+        self.constant_learnable_mask_tensors_for_empty_voxels = torch.nn.Parameter(
+            torch.randn(
+                [self.hparams.latent_dim, 2, 2, 2],
+                dtype=torch.float32,
+                device=self.device,
+            )
+        )  # , generator=generator
 
-        self.mapping_down = nn.Linear(self.penc_channels + 8 * self.hparams.latent_dim, self.hparams.dim_size)
+        self.mapping_down = nn.Linear(
+            self.penc_channels + 8 * self.hparams.latent_dim, self.hparams.dim_size
+        )
         self.mapping_up = nn.Linear(self.hparams.dim_size, 8 * self.hparams.latent_dim)
-        self.redundant_mapping = nn.Linear(8 * self.hparams.latent_dim, 8 * self.hparams.latent_dim)
+        self.redundant_mapping = nn.Linear(
+            8 * self.hparams.latent_dim, 8 * self.hparams.latent_dim
+        )
 
     def calculate_losses(
         self,
@@ -99,29 +147,53 @@ class TransformerSDFtoSDFABCOUTSIDE(pl.LightningModule):
         transformer_output_sequence: torch.Tensor,  # output
         optimized_latent_codes_reshaped: torch.Tensor,  # gt
     ) -> dict:
-        all_losses = self.l1_loss(transformer_output_sequence, optimized_latent_codes_reshaped)
+        all_losses = self.l1_loss(
+            transformer_output_sequence, optimized_latent_codes_reshaped
+        )
 
         l1_loss_masked = torch.tensor(0.0).to(device=self.device)
         if torch.any(masked_bool):
-            l1_loss_masked = self.l1_loss(transformer_output_sequence[masked_bool], optimized_latent_codes_reshaped[masked_bool])
+            l1_loss_masked = self.l1_loss(
+                transformer_output_sequence[masked_bool],
+                optimized_latent_codes_reshaped[masked_bool],
+            )
 
         l1_loss_non_masked = torch.tensor(0.0).to(device=self.device)
         if torch.any(non_masked_bool):
-            l1_loss_non_masked = self.l1_loss(transformer_output_sequence[non_masked_bool], optimized_latent_codes_reshaped[non_masked_bool])
+            l1_loss_non_masked = self.l1_loss(
+                transformer_output_sequence[non_masked_bool],
+                optimized_latent_codes_reshaped[non_masked_bool],
+            )
 
-        loss_dict = {"l1_loss_masked": l1_loss_masked, "l1_loss_non_masked": l1_loss_non_masked}
+        loss_dict = {
+            "l1_loss_masked": l1_loss_masked,
+            "l1_loss_non_masked": l1_loss_non_masked,
+        }
         # calculate scaled losses
         if True:
-            transformer_output_sequence_shape = [transformer_output_sequence.shape[0], transformer_output_sequence.shape[1]]
-            (l1_loss_scaled, l1_loss_masked_scaled, l1_loss_non_masked_scaled) = l_fn.scale_losses_noEmptymasking(
-                loss_dict, masked_bool, non_masked_bool, transformer_output_sequence_shape
+            transformer_output_sequence_shape = [
+                transformer_output_sequence.shape[0],
+                transformer_output_sequence.shape[1],
+            ]
+            l1_loss_scaled, l1_loss_masked_scaled, l1_loss_non_masked_scaled = (
+                l_fn.scale_losses_noEmptymasking(
+                    loss_dict,
+                    masked_bool,
+                    non_masked_bool,
+                    transformer_output_sequence_shape,
+                )
             )
-            loss_dict_scaled = {"l1_loss_masked": l1_loss_masked_scaled, "l1_loss_non_masked": l1_loss_non_masked_scaled}
+            loss_dict_scaled = {
+                "l1_loss_masked": l1_loss_masked_scaled,
+                "l1_loss_non_masked": l1_loss_non_masked_scaled,
+            }
 
         # weight losses
         if True:
-            (l1_loss_w, l1_loss_masked_w, l1_loss_non_masked_w) = l_fn.weight_losses_noEmptymasking(
-                loss_dict_scaled, weight_masked=1.0, weight_non_masked=1.0
+            l1_loss_w, l1_loss_masked_w, l1_loss_non_masked_w = (
+                l_fn.weight_losses_noEmptymasking(
+                    loss_dict_scaled, weight_masked=1.0, weight_non_masked=1.0
+                )
             )
 
         return {
@@ -130,60 +202,114 @@ class TransformerSDFtoSDFABCOUTSIDE(pl.LightningModule):
             "l1_loss": l1_loss_w,
             "all_losses": all_losses,
         }
-    def assign_constant_learnable_tensors(self, optimized_latent_codes: torch.Tensor, bool_dict: dict) -> torch.Tensor:
+
+    def assign_constant_learnable_tensors(
+        self, optimized_latent_codes: torch.Tensor, bool_dict: dict
+    ) -> torch.Tensor:
         masked_optimized_latent_codes = optimized_latent_codes.clone()
 
         mask_all_bool = bool_dict["mask_all_bool"]
 
-        masked_optimized_latent_codes[mask_all_bool] = self.constant_learnable_mask_tensors
+        masked_optimized_latent_codes[mask_all_bool] = (
+            self.constant_learnable_mask_tensors
+        )
 
         return masked_optimized_latent_codes.clone()
 
-    def call_transformer_and_mapping_layers(self, transformer_input_sequence: torch.Tensor) -> torch.Tensor:
+    def call_transformer_and_mapping_layers(
+        self, transformer_input_sequence: torch.Tensor
+    ) -> torch.Tensor:
         transformer_input_sequence = transformer_input_sequence.clone()
 
         transformer_input_sequence_down = self.mapping_down(transformer_input_sequence)
-        transformer_output_sequence = self.regular_transformer(transformer_input_sequence_down)
+        transformer_output_sequence = self.regular_transformer(
+            transformer_input_sequence_down
+        )
         transformer_output_sequence_up = self.mapping_up(transformer_output_sequence)
 
         return transformer_output_sequence_up.clone()
 
-    def forward(self, sub_voxels: torch.Tensor, non_optimized_latent_codes: torch.Tensor, mask_all_bool) -> Union[tuple[Any, Any, Any], Any]:
+    def forward(
+        self,
+        sub_voxels: torch.Tensor,
+        non_optimized_latent_codes: torch.Tensor,
+        mask_all_bool,
+    ) -> Union[tuple[Any, Any, Any], Any]:
         # This part is the same for training and validation
         mask_all_bool = mask_all_bool.clone()
         batch_size = sub_voxels.shape[0]
-        masked_non_optimized_latent_codes = self.assign_constant_learnable_tensors(non_optimized_latent_codes.clone(), bool_dict={"mask_all_bool": mask_all_bool})
+        masked_non_optimized_latent_codes = self.assign_constant_learnable_tensors(
+            non_optimized_latent_codes.clone(),
+            bool_dict={"mask_all_bool": mask_all_bool},
+        )
         # -----------------------------------------------------------------------------------------------------------------------------
         # Prep for passing the masked_optimized_latent_codes to transformer--------------------------------------------------------
         # masked_optimized_latent_codes size : [B, SeqLen, 512, 2, 2, 2] --> [B, 64, 512, 2, 2, 2] --> reshape: [B, 64, 4096]
-        masked_non_optimized_non_latent_codes_reshaped = masked_non_optimized_latent_codes.reshape([batch_size, self.number_of_sub_voxels, 8 * self.hparams.latent_dim])
-        masked_non_optimized_non_latent_codes_reshaped_mapped = self.redundant_mapping(masked_non_optimized_non_latent_codes_reshaped)
-        assert masked_non_optimized_non_latent_codes_reshaped.shape == masked_non_optimized_non_latent_codes_reshaped_mapped.shape
-        z_positionally_encoded_re = self.positional_encoder_3d(shape_of_positions=[batch_size, 4, 4, 4, self.penc_channels])
-        assert z_positionally_encoded_re.shape == masked_non_optimized_non_latent_codes_reshaped_mapped.shape
-        transformer_input_sequence = concatenate_for_given_dim(z_positionally_encoded_re, masked_non_optimized_non_latent_codes_reshaped_mapped, cat_dim=2)
+        masked_non_optimized_non_latent_codes_reshaped = (
+            masked_non_optimized_latent_codes.reshape(
+                [batch_size, self.number_of_sub_voxels, 8 * self.hparams.latent_dim]
+            )
+        )
+        masked_non_optimized_non_latent_codes_reshaped_mapped = self.redundant_mapping(
+            masked_non_optimized_non_latent_codes_reshaped
+        )
+        assert (
+            masked_non_optimized_non_latent_codes_reshaped.shape
+            == masked_non_optimized_non_latent_codes_reshaped_mapped.shape
+        )
+        z_positionally_encoded_re = self.positional_encoder_3d(
+            shape_of_positions=[batch_size, 4, 4, 4, self.penc_channels]
+        )
+        assert (
+            z_positionally_encoded_re.shape
+            == masked_non_optimized_non_latent_codes_reshaped_mapped.shape
+        )
+        transformer_input_sequence = concatenate_for_given_dim(
+            z_positionally_encoded_re,
+            masked_non_optimized_non_latent_codes_reshaped_mapped,
+            cat_dim=2,
+        )
 
-        transformer_output_sequence = self.call_transformer_and_mapping_layers(transformer_input_sequence)
+        transformer_output_sequence = self.call_transformer_and_mapping_layers(
+            transformer_input_sequence
+        )
 
         return (transformer_output_sequence, masked_non_optimized_latent_codes)
 
-    def generate_all_masking(self, sub_voxels: torch.Tensor, object_indices: torch.Tensor, mesh_file_name):
+    def generate_all_masking(
+        self, sub_voxels: torch.Tensor, object_indices: torch.Tensor, mesh_file_name
+    ):
         batch_size = object_indices.shape[0]
 
-        empty_sub_voxels_bool, non_empty_sub_voxels_bool = pp_fns.extract_outside_and_non_outside_voxels(sub_voxels.clone(), self.number_of_sub_voxels, self.hparams.target_resolution)
+        empty_sub_voxels_bool, non_empty_sub_voxels_bool = (
+            pp_fns.extract_outside_and_non_outside_voxels(
+                sub_voxels.clone(),
+                self.number_of_sub_voxels,
+                self.hparams.target_resolution,
+            )
+        )
         if not torch.all(torch.any(non_empty_sub_voxels_bool, dim=1)):
-            pair = {"object_index": object_indices.item(), "mesh_file_name": mesh_file_name}
+            pair = {
+                "object_index": object_indices.item(),
+                "mesh_file_name": mesh_file_name,
+            }
             print("\nall voxels are empty", pair)
             breakpoint()
 
-        mask_all_bool, num_mask_all = gr_mask.generate_random_mask_for_all(self.number_of_sub_voxels, batch_size, masking_ratio=self.hparams.masking_ratio)
+        mask_all_bool, num_mask_all = gr_mask.generate_random_mask_for_all(
+            self.number_of_sub_voxels,
+            batch_size,
+            masking_ratio=self.hparams.masking_ratio,
+        )
 
         # just for return
         masked_bool = mask_all_bool.clone()
-        non_masked_bool = torch.logical_and(non_empty_sub_voxels_bool, torch.logical_not(mask_all_bool))
+        non_masked_bool = torch.logical_and(
+            non_empty_sub_voxels_bool, torch.logical_not(mask_all_bool)
+        )
         return (mask_all_bool, masked_bool, non_masked_bool)
 
-    def fwd(self, batch: list, train: bool) -> Tuple[dict,  Tuple]:
+    def fwd(self, batch: list, train: bool) -> Tuple[dict, Tuple]:
         (
             keys,
             object_indices,
@@ -196,36 +322,69 @@ class TransformerSDFtoSDFABCOUTSIDE(pl.LightningModule):
 
         batch_size = object_indices.shape[0]
         # -----------
-        sub_voxels = pp_fns.sub_divide_gt_and_normalize(gt_sdf_full_voxel.clone(), self.number_of_sub_voxels, self.hparams.target_resolution)
+        sub_voxels = pp_fns.sub_divide_gt_and_normalize(
+            gt_sdf_full_voxel.clone(),
+            self.number_of_sub_voxels,
+            self.hparams.target_resolution,
+        )
         # generate empty and non-empty bool-----------------------------------------------------------------------------------------------
-        mask_all_bool, masked_bool, non_masked_bool = self.generate_all_masking(sub_voxels, object_indices, obj_file_names)
+        mask_all_bool, masked_bool, non_masked_bool = self.generate_all_masking(
+            sub_voxels, object_indices, obj_file_names
+        )
 
         # FORWARD CAlL----------------------------------------------------------------------------------------------------------------------------
-        (transformer_output_sequence_up, masked_non_optimized_latent_codes) = self.forward(sub_voxels, non_optimized_latent_codes, mask_all_bool)
+        transformer_output_sequence_up, masked_non_optimized_latent_codes = (
+            self.forward(sub_voxels, non_optimized_latent_codes, mask_all_bool)
+        )
         # for loss calculation
-        non_optimized_latent_codes_reshaped = non_optimized_latent_codes.reshape([batch_size, self.number_of_sub_voxels, 8 * self.hparams.latent_dim])
-        assert transformer_output_sequence_up.shape == non_optimized_latent_codes_reshaped.shape
+        non_optimized_latent_codes_reshaped = non_optimized_latent_codes.reshape(
+            [batch_size, self.number_of_sub_voxels, 8 * self.hparams.latent_dim]
+        )
+        assert (
+            transformer_output_sequence_up.shape
+            == non_optimized_latent_codes_reshaped.shape
+        )
 
         # calculate losses:
-        loss_dict = self.calculate_losses(masked_bool, non_masked_bool, transformer_output_sequence_up, non_optimized_latent_codes_reshaped)
+        loss_dict = self.calculate_losses(
+            masked_bool,
+            non_masked_bool,
+            transformer_output_sequence_up,
+            non_optimized_latent_codes_reshaped,
+        )
         loss = loss_dict["l1_loss"]
 
         # log losses
         if train:
-            loss_log = l_fn.create_log_losses_for_given_dict(loss_dict, stage="training")
+            loss_log = l_fn.create_log_losses_for_given_dict(
+                loss_dict, stage="training"
+            )
 
             self.log_dict(loss_log, batch_size=self.hparams.batch_size, sync_dist=True)
-            self.log("train_loss", loss, batch_size=self.hparams.batch_size, sync_dist=True)
+            self.log(
+                "train_loss", loss, batch_size=self.hparams.batch_size, sync_dist=True
+            )
 
         else:
             loss_log = l_fn.create_log_losses_for_given_dict(loss_dict, stage="val")
 
-            self.log_dict(loss_log, batch_size=self.hparams.val_batch_size, sync_dist=True)
-            self.log("val_loss", loss, batch_size=self.hparams.val_batch_size, sync_dist=True)
+            self.log_dict(
+                loss_log, batch_size=self.hparams.val_batch_size, sync_dist=True
+            )
+            self.log(
+                "val_loss", loss, batch_size=self.hparams.val_batch_size, sync_dist=True
+            )
 
         loss_dict = {"loss": loss}
 
-        return (loss_dict, (masked_non_optimized_latent_codes, transformer_output_sequence_up, sub_voxels))
+        return (
+            loss_dict,
+            (
+                masked_non_optimized_latent_codes,
+                transformer_output_sequence_up,
+                sub_voxels,
+            ),
+        )
 
     def training_step(self, batch: list, batch_idx: int) -> dict:
         # (
@@ -237,7 +396,7 @@ class TransformerSDFtoSDFABCOUTSIDE(pl.LightningModule):
         #     # var_copy,
         #     non_optimized_latent_codes
         # ) = batch
-        loss_dict,  stuff = self.fwd(batch, True)
+        loss_dict, stuff = self.fwd(batch, True)
 
         # masked_non_optimized_latent_codes, transformer_output_sequence_up, sub_voxels = stuff
         return loss_dict
@@ -263,7 +422,11 @@ class TransformerSDFtoSDFABCOUTSIDE(pl.LightningModule):
         assert object_indices.shape == (self.hparams.val_batch_size,)
         loss_dict, stuff = self.fwd(batch, False)
 
-        masked_non_optimized_latent_codes, transformer_output_sequence_up, sub_voxels = stuff
+        (
+            masked_non_optimized_latent_codes,
+            transformer_output_sequence_up,
+            sub_voxels,
+        ) = stuff
 
         # visualization and tensorboard---------------------------
         dict_arguments_for_vis = {
@@ -280,18 +443,43 @@ class TransformerSDFtoSDFABCOUTSIDE(pl.LightningModule):
             "resolution": self.hparams.resolution,
         }
 
-        self.plot_march_and_login_tensorboard(dict_arguments_for_vis, dict_arguments_of_variables, object_indices, batch_size)
+        self.plot_march_and_login_tensorboard(
+            dict_arguments_for_vis,
+            dict_arguments_of_variables,
+            object_indices,
+            batch_size,
+        )
 
-    def plot_march_and_login_tensorboard(self, dict_arguments_for_vis: dict, dict_arguments_of_variables: dict, object_indices: torch.Tensor, batch_size: int) -> None:
-        data_dict_for_vis = pmt_fns.generate_data_for_plottingv2(dict_arguments_for_vis, dict_arguments_of_variables, self.fdecoder)
+    def plot_march_and_login_tensorboard(
+        self,
+        dict_arguments_for_vis: dict,
+        dict_arguments_of_variables: dict,
+        object_indices: torch.Tensor,
+        batch_size: int,
+    ) -> None:
+        data_dict_for_vis = pmt_fns.generate_data_for_plottingv2(
+            dict_arguments_for_vis, dict_arguments_of_variables, self.fdecoder
+        )
         for b in range(batch_size):
             selected_index = object_indices[b].detach().cpu().item()
             if selected_index in self.my_selected_indices:
-                collected_data_dict_for_plotting = pmt_fns.collect_generated_data_for_plottingv3(data_dict_for_vis, self.hparams.resolution, batch_idx=b)
-                plots = tv.generate_plot_for_given_dict_of_items(collected_data_dict_for_plotting, self.hparams.resolution, number_of_slices=2, plot_scale_factor=2, plot_range=[-2,2])
+                collected_data_dict_for_plotting = (
+                    pmt_fns.collect_generated_data_for_plottingv3(
+                        data_dict_for_vis, self.hparams.resolution, batch_idx=b
+                    )
+                )
+                plots = tv.generate_plot_for_given_dict_of_items(
+                    collected_data_dict_for_plotting,
+                    self.hparams.resolution,
+                    number_of_slices=2,
+                    plot_scale_factor=2,
+                    plot_range=[-2, 2],
+                )
                 self.login_to_tensorboard(plots, selected_index, number_of_slices=2)
 
-    def login_to_tensorboard(self, plots: list, selected_index: int, number_of_slices: int):
+    def login_to_tensorboard(
+        self, plots: list, selected_index: int, number_of_slices: int
+    ):
         # plot and log slices
         for sl in range(0, number_of_slices, 1):
             # plot everything
@@ -305,10 +493,14 @@ class TransformerSDFtoSDFABCOUTSIDE(pl.LightningModule):
             )
 
     def setup(self, stage: str) -> None:
-        self.train_dataset = ABCWITHNONOPTIMIZEDLATENTCODES(self.hparams.obj_dir, self.hparams.train_lmdb_path, self.hparams.value_range, self.hparams.resolution)
+        self.train_dataset = ABCWITHNONOPTIMIZEDLATENTCODES(
+            self.hparams.obj_dir,
+            self.hparams.train_lmdb_path,
+            self.hparams.value_range,
+            self.hparams.resolution,
+        )
 
         print("\n setup: train_dataset len: ", len(self.train_dataset))
-
 
         # by mistake, we called the eval/test dataset as val dataset, while actual validation dataset is the first 100 objects in train dataset
         # that is used to evaluate the performance of training like below.
@@ -317,7 +509,12 @@ class TransformerSDFtoSDFABCOUTSIDE(pl.LightningModule):
         # )
         # self.val_dataset.len = 100
 
-        self.val_dataset = ABCWITHNONOPTIMIZEDLATENTCODESVAL(self.hparams.obj_dir, self.hparams.val_lmdb_path, self.hparams.value_range, self.hparams.resolution)
+        self.val_dataset = ABCWITHNONOPTIMIZEDLATENTCODESVAL(
+            self.hparams.obj_dir,
+            self.hparams.val_lmdb_path,
+            self.hparams.value_range,
+            self.hparams.resolution,
+        )
 
         print("\n setup: val_dataset len: ", len(self.val_dataset))
 
@@ -369,5 +566,3 @@ class TransformerSDFtoSDFABCOUTSIDE(pl.LightningModule):
             "frequency": 1,
         }
         return [optimizer], [lr_scheduler]
-
-
