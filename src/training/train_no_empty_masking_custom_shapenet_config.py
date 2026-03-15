@@ -30,7 +30,7 @@ def main():
         "--train_lmdb_path",
         # default="path_to_poc-slt-shapenet-train-lmdb:encoded_combined",  # dataset for full mesh with 128^3
         type=str,
-        required=True
+        required=True,
     )
 
     # by mistake, evaluation lmdb is called validation in this pipeline. The validation is the first 100 objects in the training set used to monitor
@@ -39,7 +39,7 @@ def main():
         "--val_lmdb_path",
         # default="path_to_poc-slt-shapenet-test-lmdb:_with_NonOptimizedLatentCodes/",  # dataset for full mesh with 128^3
         type=str,
-        required=True
+        required=True,
     )
 
     parser.add_argument(
