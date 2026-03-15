@@ -53,7 +53,7 @@ class SDFtoSDF(pl.LightningModule):
         x_encoded_p = x_encoded_reshaped.permute([0, 2, 3, 4, 1])
         x_encoded_reshaped = x_encoded_p.reshape([B * D * H * W, Ch])
 
-        self.posterior = p_vae.distribution.Distribution(x_encoded_reshaped)
+        self.posterior = src.p_vae.distribution.Distribution(x_encoded_reshaped)
         if mode == "training":
             x_distribution_sample = self.posterior.sample()
             B_new, Ch_new = x_distribution_sample.shape
@@ -100,9 +100,7 @@ class SDFtoSDF(pl.LightningModule):
         )
         normalized_gt_sdf_voxels_transformed_reshaped = (
             normalized_gt_sdf_voxels_transformed
-        ).unsqueeze(
-            1
-        )  # FIXME
+        ).unsqueeze(1)
 
         predicted = self.forward(
             normalized_gt_sdf_voxels_transformed_reshaped, mode="training"
@@ -149,9 +147,7 @@ class SDFtoSDF(pl.LightningModule):
         )
         normalized_gt_sdf_voxels_transformed_reshaped = (
             normalized_gt_sdf_voxels_transformed
-        ).unsqueeze(
-            1
-        )  # FIXME
+        ).unsqueeze(1)
 
         predicted = self.forward(
             normalized_gt_sdf_voxels_transformed_reshaped, mode="val"
@@ -268,11 +264,11 @@ class SDFtoSDF(pl.LightningModule):
         train_dict = torch.load(train_dict_path)
 
         val_dict_path = os.path.join(
-            self.hparams.train_val_dict_path, "val_dataset_dict"
+            self.hparams.train_val_dict_path, "test_dataset_dict"
         )
         val_dict = torch.load(val_dict_path)
 
-        val_lmdb_path = os.path.join(self.hparams.lmdb_path, "shapenet_val")
+        val_lmdb_path = os.path.join(self.hparams.lmdb_path, "shapenet_test")
         train_lmdb_path = os.path.join(self.hparams.lmdb_path, "shapenet_train")
 
         # setup data from dataset class

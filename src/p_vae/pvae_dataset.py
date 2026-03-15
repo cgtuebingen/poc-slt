@@ -131,7 +131,7 @@ class ReadLMDBDataset(pl.LightningDataModule):
             raw_example = msgpack.unpackb(lmdb_txn.get(msgpack.packb(key)))
             gt_sdf_voxel = np.array(
                 raw_example["gt_sdf_voxel"], copy=True
-            )  # FIXME change the type as well
+            )
             d = np.array(raw_example["d"], copy=True)
             left = np.array(raw_example["left"], copy=True)
             x_offset = np.array(raw_example["x_offset"], copy=True)

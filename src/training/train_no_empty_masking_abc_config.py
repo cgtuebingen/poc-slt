@@ -120,7 +120,7 @@ def main():
         num_nodes=1,
         strategy=DDPStrategy(
             process_group_backend="NCCl", find_unused_parameters=True
-        ),  # NCCL tends to be unreliable for some reason
+        ),
         max_epochs=700,
         log_every_n_steps=100,
         detect_anomaly=True,

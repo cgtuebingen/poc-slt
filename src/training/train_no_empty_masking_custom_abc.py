@@ -260,7 +260,7 @@ class TransformerSDFtoSDFABCOUTSIDE(pl.LightningModule):
                 z_positionally_encoded_re,
                 masked_non_optimized_non_latent_codes_reshaped_mapped,
             ),
-            dim=1,
+            dim=2,
         ).to(device=self.device)
 
         transformer_output_sequence = self.call_transformer_and_mapping_layers(

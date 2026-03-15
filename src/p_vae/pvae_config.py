@@ -20,23 +20,26 @@ def main():
     # By mistake the test dictionary is called validation throughout the p_vae pipeline
     parser.add_argument(
         "--train_val_dict_path",
-        default="/path_to_poc-slt_data/",
+
+        default="default=/path_to_poc-slt_data: poc-slt-github/data/Shapenet/",
         type=str,
-        required=True,
+        required=True
+
     )
 
     parser.add_argument(
-        "--lmdb_path", default="/path_to_train_lmdb/", type=str, required=True
+        "--lmdb_path",default="/path_to_lmdbs/", type=str,required=True
     )
 
-    # TODO: if you are using our pre-maed lmdb you can set the mesh_path hard-coded as "/graphics/scratch2/staff/zakeri/LMDBs/ShapeNetCorev2_remeshed_0.008/ShapeNetCore.v2/"
+    # TODO: if you are using our pre-made lmdb you can set the mesh_path hard-coded as "/graphics/scratch2/staff/zakeri/LMDBs/ShapeNetCorev2_remeshed_0.008/ShapeNetCore.v2/"
     # TODO, if you are generating the lmdb by your self, you must adopt it.
     parser.add_argument(
-        "--mesh_path", default="path_to_remeshed_shapenet", type=str, required=True
+        "--mesh_path", default="/graphics/scratch2/staff/ruppert/scart/ShapeNetCorev2_remeshed_0.008/ShapeNetCore.v2/", type=str
     )
     parser.add_argument(
         "--marching_cube_result_dir",
-        default="/path_to_marching_cube_result_dir/",
+        # default="/path_to_marching_cube_result_dir/",
+        required=True,
         type=str,
     )
 
