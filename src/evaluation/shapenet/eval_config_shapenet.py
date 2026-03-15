@@ -27,19 +27,21 @@ def main_half(
 
     parser.add_argument(
         "--vae_checkpoint_path",
-        default="/graphics/scratch3/staff/zakeri/scratch2_coppied/train_logs/VAE/skip_connection/v403_64_2x2x2_noBNDecoder_shapenetcorev2_excluding_shapenetcorev1_validation_split/lightning_logs/version_0/checkpoints/saved/checkpoint-epoch=193-loss=0.000.ckpt",
+        # default="path_to_p_vae_checkpoint",
         type=str,
+        required=True,
     )
 
     parser.add_argument(
         "--lmdb_path",
-        default="/graphics/scratch2/staff/zakeri/LMDBs/shapenetcorev2_SDF_SpanningMultiResVoxel32_128fullmesh_normalized_val/encoded_combined/_with_NonOptimizedLatentCodes_new",  # dataset for full mesh with 128^3
+        # default="path_to_poc-slt_test_lmdb",  # dataset for full mesh with 128^3
         type=str,
+        required=True
     )
 
     parser.add_argument(
         "--orig_mesh_bbx_path",
-        default="/graphics/scratch2/staff/zakeri/all_mesh_file_names_shapenetCorev1_55/all_mesh_file_bbx.pkl",
+        default="path_to/data/Shapenet/all_mesh_file_bbx.pkl",
         type=str,
     )
     parser.add_argument("--pre_trained", default=True, type=bool)
@@ -47,13 +49,13 @@ def main_half(
     # eval
     # for octant used in the paper: "front-bottom-right"
     parser.add_argument(
-        "--custom_mask_mode", default="bottom-half", type=str, required=False
+        "--custom_mask_mode", default="bottom-half", type=str,  required=True
     )
     parser.add_argument("--device", default="cuda:0", type=str)
     parser.add_argument("--num_samples", default=1000000, type=int)
 
-    parser.add_argument("--min_range", type=int, default=0)
-    parser.add_argument("--max_range", type=int, default=10)
+    parser.add_argument("--min_range", type=int,  required=True)
+    parser.add_argument("--max_range", type=int,  required=True)
 
     parser.add_argument(
         "--eval_dir",
@@ -118,14 +120,13 @@ if __name__ == "__main__":
     torch.cuda.empty_cache()
     torch.multiprocessing.set_sharing_strategy("file_system")
 
-    version_root = "/graphics/scratch3/staff/zakeri/scratch2_coppied/train_logs/Transformer/flash_attention/with_optimized_latent_codes/full_dataset/overfitting/clean_code/regular_cat_fulldataset_alternative_test3_normalized_shapenet_noEmptymasking_custom/lightning_logs/version_9/"
+    eval_root = os.path.join("path_to_eval_root", "eval")
 
-    eval_root = os.path.join("/graphics/scratch2/staff/zakeri/tmp/", "eval")
-    checkpoint_root = os.path.join(version_root, "checkpoints")
-
-    eval_mode_dir = os.path.join(eval_root, "ev1", "bottom_half/")
+    eval_mode_dir = os.path.join(eval_root, "ev1", "bottom_half/")  # TODO, change your version and MR here
     if not os.path.isdir(eval_mode_dir):
         os.makedirs(eval_mode_dir)
+
+    checkpoint_dir = "path_to_poc-slt-checkpoint"
 
     eval_dir = os.path.join(eval_mode_dir, "eval_dir/")
     if not os.path.isdir(eval_dir):
@@ -136,9 +137,5 @@ if __name__ == "__main__":
     common_obj_dir = os.path.join(eval_mode_dir, "common_obj_dir/")
     if not os.path.isdir(common_obj_dir):
         os.mkdir(common_obj_dir)
-    # used for evaluation of transformer
-    checkpoint_mode_path = os.path.join(
-        checkpoint_root, "saved/" + "checkpoint-epoch=2133-loss=0.000.ckpt"
-    )
 
-    main_half(eval_dir, obj_dir, common_obj_dir, checkpoint_mode_path)
+    main_half(eval_dir, obj_dir, common_obj_dir, checkpoint_dir)

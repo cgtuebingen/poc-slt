@@ -10,7 +10,7 @@ from src.training.train_no_empty_masking_custom_abc import TransformerSDFtoSDFAB
 def main():
     parser = argparse.ArgumentParser()
     #  for SDFtoSDF
-    parser.add_argument("--latent_dim", default=512, type=int)  # 512
+    parser.add_argument("--latent_dim", default=512, type=int)
     parser.add_argument("--resolution", default=128, type=int)
     parser.add_argument("--target_resolution", default=32, type=int)
     parser.add_argument("--batch_size", default=64, type=int)
@@ -20,14 +20,16 @@ def main():
 
     parser.add_argument(
         "--train_lmdb_path",
-        default="/graphics/scratch2/staff/zakeri/LMDBs/ABC_128cube_100KLMDB_Train_cuda/_with_NonOptimizedLatentCodes/",  # dataset for full mesh with 128^3
+        # default="path_to_abc-train_lmdb/ABC_128cube_100KLMDB_Train_cuda/_with_NonOptimizedLatentCodes/",  # dataset for full mesh with 128^3
         type=str,
+        required=True,
     )
-    #
+
     parser.add_argument(
         "--val_lmdb_path",
-        default="/graphics/scratch2/staff/zakeri/LMDBs/ABC_128cube_5KLMDB_Test_cuda/_WithnonOptimizedLatentCodes/",  # dataset for full mesh with 128^3
+        # default="path_abc_test_lmdb/ABC_128cube_5KLMDB_Test_cuda/_WithnonOptimizedLatentCodes/",  # dataset for full mesh with 128^3
         type=str,
+        required=True,
     )
 
     parser.add_argument(
@@ -40,20 +42,21 @@ def main():
 
     parser.add_argument(
         "--vae_checkpoint_path",
-        default="/graphics/scratch3/staff/zakeri/VAE_Checkpoint/checkpoint-epoch=193-loss=0.000.ckpt/",
+        # default="path_to_p_vae_checkpoint",
         type=str,
+        required=True,
     )
 
     parser.add_argument(
         "--marching_cube_result_dir",
-        default="/graphics/scratch2/staff/zakeri/train_logs/Transformer/flash_attention/with_optimized_latent_codes/full_dataset/overfitting/clean_code/regular_cat_fulldataset_alternative_test3_ABC_custom_noEmpty/marching_cube_results_0/",
+        # default="/path_to_mcube_results_while_training/",
         type=str,
+        required=True,
     )
     # ABC no_empty checkpoint
     parser.add_argument(
         "--transformer_checkpoint_path",
-        # default="/graphics/scratch2/staff/zakeri/train_logs/Transformer/flash_attention/with_optimized_latent_codes/full_dataset/overfitting/clean_code/regular_cat_fulldataset_alternative_test3_ABC_noEmpty/lightning_logs/version_1/checkpoints/saved/checkpoint-epoch=684-loss=0.000.ckpt",
-        default="/graphics/scratch3/staff/zakeri/scratch2_coppied/train_logs/Transformer/flash_attention/with_optimized_latent_codes/full_dataset/overfitting/clean_code/regular_cat_fulldataset_alternative_test3_ABC_noEmpty/lightning_logs/version_1/checkpoints/saved/checkpoint-epoch=684-loss=0.000.ckpt",
+        default="path_to_poc-slt-abc-initialization-model/checkpoint-epoch=684-loss=0.000.ckpt",
         type=str,
     )
     # hparams for transformer
@@ -125,10 +128,8 @@ def main():
         callbacks=[checkpoint_callback, lr_Monitor],
         val_check_interval=10000,
         check_val_every_n_epoch=None,
-        default_root_dir="/graphics/scratch2/staff/zakeri/tmp/pocslt_test/train_log/",
+        default_root_dir="/path_to_tensorboard_root/",
         # precision="bf16",
-        # gradient_clip_val=0.5,
-        # resume_from_checkpoint="/graphics/scratch2/staff/zakeri/train_logs/Transformer/flash_attention/with_optimized_latent_codes/full_dataset/overfitting/clean_code/regular_cat_fulldataset_alternative_test3_ABC_custom_noEmpty/lightning_logs/version_3/checkpoints/checkpoint-epoch=892-loss=0.000.ckpt"
     )
     trainer.fit(model)
     print("CUDA_VISIBLE_DEVICES", os.environ["CUDA_VISIBLE_DEVICES"])

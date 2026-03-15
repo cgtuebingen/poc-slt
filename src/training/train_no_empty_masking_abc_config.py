@@ -21,14 +21,16 @@ def main():
 
     parser.add_argument(
         "--train_lmdb_path",
-        default="/graphics/scratch2/staff/zakeri/LMDBs/ABC_128cube_100KLMDB_Train_cuda/_with_NonOptimizedLatentCodes/",  # dataset for full mesh with 128^3
+        # default="path_to_abc-train_lmdb/ABC_128cube_100KLMDB_Train_cuda/_with_NonOptimizedLatentCodes/",  # dataset for full mesh with 128^3
         type=str,
+        required=True,
     )
 
     parser.add_argument(
         "--val_lmdb_path",
-        default="/graphics/scratch2/staff/zakeri/LMDBs/ABC_128cube_5KLMDB_Test_cuda/_WithnonOptimizedLatentCodes/",  # dataset for full mesh with 128^3
+        # default="path_abc_test_lmdb/ABC_128cube_5KLMDB_Test_cuda/_WithnonOptimizedLatentCodes/",  # dataset for full mesh with 128^3
         type=str,
+        required=True,
     )
 
     parser.add_argument(
@@ -41,20 +43,22 @@ def main():
 
     parser.add_argument(
         "--vae_checkpoint_path",
-        default="/graphics/scratch3/staff/zakeri/VAE_Checkpoint/checkpoint-epoch=193-loss=0.000.ckpt/",
+        # default="path_to_p_vae_checkpoint",
         type=str,
+        required=True,
     )
 
     parser.add_argument(
         "--marching_cube_result_dir",
-        default="/graphics/scratch2/staff/zakeri/train_logs/Transformer/flash_attention/with_optimized_latent_codes/full_dataset/overfitting/clean_code/regular_cat_fulldataset_alternative_test3_ABC_noEmpty/marching_cube_results_0/",
+        # default="/path_to_mcube_results_while_training/",
         type=str,
+        required=True
     )
     parser.add_argument(
         "--transformer_checkpoint_path",
-        # default="/graphics/scratch2/staff/zakeri/train_logs/Transformer/flash_attention/with_optimized_latent_codes/full_dataset/overfitting/clean_code/regular_cat_fulldataset_alternative_test3_normalized_shapenet_noEmptymasking_custom/lightning_logs/version_9/checkpoints/saved/checkpoint-epoch=2133-loss=0.000.ckpt",
-        default="/graphics/scratch3/staff/zakeri/scratch2_coppied/train_logs/Transformer/flash_attention/with_optimized_latent_codes/full_dataset/overfitting/clean_code/regular_cat_fulldataset_alternative_test3_normalized_shapenet_noEmptymasking_custom/lightning_logs/version_9/checkpoints/saved/checkpoint-epoch=2133-loss=0.000.ckpt",
+        # default="path_to_poc-slt-shapenet-completion-model: checkpoint-epoch=2133-loss=0.000.ckpt",
         type=str,
+        required=True,
     )
     # hparams for transformer
     parser.add_argument(
@@ -114,23 +118,18 @@ def main():
     )
     # configure the pytorch-lightning trainer.
     trainer = pl.Trainer(
-        # args,
         accelerator="gpu",
         devices=-1,
         num_nodes=1,
-        strategy=DDPStrategy(
-            process_group_backend="NCCl", find_unused_parameters=True
-        ),
+        strategy=DDPStrategy(process_group_backend="NCCl", find_unused_parameters=True),
         max_epochs=700,
         log_every_n_steps=100,
         detect_anomaly=True,
         callbacks=[checkpoint_callback, lr_Monitor],
         val_check_interval=10000,
         check_val_every_n_epoch=None,
-        default_root_dir="/graphics/scratch2/staff/zakeri/tmp/pocslt_test/train_log/",
+        default_root_dir="/path_to_tensorboard_root/",
         # precision="bf16",
-        # gradient_clip_val=0.5,
-        # resume_from_checkpoint=""
     )
     trainer.fit(model)
     print("CUDA_VISIBLE_DEVICES", os.environ["CUDA_VISIBLE_DEVICES"])

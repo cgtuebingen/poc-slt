@@ -28,16 +28,18 @@ def main():
     # --------------------------------------------
     parser.add_argument(
         "--train_lmdb_path",
-        default="/graphics/scratch2/staff/zakeri/LMDBs/shapenetcorev2_SDF_SpanningMultiResVoxel32_128fullmesh_normalized_train/encoded_combined",  # dataset for full mesh with 128^3
+        # default="path_to_poc-slt-shapenet-train-lmdb:encoded_combined",  # dataset for full mesh with 128^3
         type=str,
+        required=True
     )
 
     # by mistake, evaluation lmdb is called validation in this pipeline. The validation is the first 100 objects in the training set used to monitor
     # training performance
     parser.add_argument(
         "--val_lmdb_path",
-        default="/graphics/scratch2/staff/zakeri/LMDBs/shapenetcorev2_SDF_SpanningMultiResVoxel32_128fullmesh_ExcludingValSplit_normalized_val/_with_NonOptimizedLatentCodes/",  # dataset for full mesh with 128^3
+        # default="path_to_poc-slt-shapenet-test-lmdb:_with_NonOptimizedLatentCodes/",  # dataset for full mesh with 128^3
         type=str,
+        required=True
     )
 
     parser.add_argument(
@@ -50,20 +52,23 @@ def main():
 
     parser.add_argument(
         "--vae_checkpoint_path",
-        default="/graphics/scratch3/staff/zakeri/VAE_Checkpoint/checkpoint-epoch=193-loss=0.000.ckpt/",
+        # default="path_to_p_vae_checkpoint",
         type=str,
+        required=True,
     )
+
     parser.add_argument(
         "--marching_cube_result_dir",
-        default="/graphics/scratch2/staff/zakeri/train_logs/Transformer/flash_attention/with_optimized_latent_codes/full_dataset/overfitting/clean_code/regular_cat_fulldataset_alternative_test3_normalized_shapenet_noEmptymasking_custom/marching_cube_results_0/",
+        # default="/path_to_mcube_results_while_training/",
         type=str,
+        required=True,
     )
 
     parser.add_argument(
         "--transformer_checkpoint_path",  # no_empty_masking checkpoint is to initialize the no_empty_masking_custom model
-        # default="/graphics/scratch2/staff/zakeri/train_logs/Transformer/flash_attention/with_optimized_latent_codes/full_dataset/overfitting/clean_code/regular_cat_fulldataset_alternative_test3_normalized_shapenet_noEmptymasking/lightning_logs/version_5/checkpoints/saved/checkpoint-epoch=791-loss=0.000.ckpt/",
-        default="/graphics/scratch3/staff/zakeri/scratch2_coppied/train_logs/Transformer/flash_attention/with_optimized_latent_codes/full_dataset/overfitting/clean_code/regular_cat_fulldataset_alternative_test3_normalized_shapenet_noEmptymasking/lightning_logs/version_5/checkpoints/saved/checkpoint-epoch=791-loss=0.000.ckpt",
+        # default="path_to_poc-slt-shapenet-initialization-model:checkpoint-epoch=791-loss=0.000.ckpt",
         type=str,
+        required=True,
     )
 
     # hparams for transformer

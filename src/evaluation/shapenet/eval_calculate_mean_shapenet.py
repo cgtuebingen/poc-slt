@@ -11,12 +11,12 @@ from src.evaluation.shapenet.common_files_shapenet import (
 )
 
 if __name__ == "__main__":
-    eval_dir = "/graphics/scratch2/staff/zakeri/tmp/eval/ev1/bottom_half/eval_dir/"
+    eval_dir = "/path_to_your_eval_dir/"
 
     eval_file_list = extract_files_with_given_extension_general(eval_dir, ".pkl")
 
     # load chamfer remeshed_meshes vs original_meshes
-    broken_meshes_dir = "/graphics/scratch2/staff/zakeri/shapenetcorev1_broken_meshes/shapenetcorev1_55_broken_meshes/remeshed_vs_orig_chamfer_all.pkl"
+    broken_meshes_dir = "path_to/data/Shapenet/remeshed_vs_orig_chamfer_all/data.pkl"
     remeshed_vs_orig_chamfer_all = torch.load(broken_meshes_dir)
     sortedobjID_remeshed_vs_orig_chamfer_all = sorted(
         remeshed_vs_orig_chamfer_all, key=lambda d: d["object_index"]

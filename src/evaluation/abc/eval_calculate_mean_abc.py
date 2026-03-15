@@ -11,7 +11,7 @@ from src.evaluation.abc.common_files_abc import (
 
 if __name__ == "__main__":
     eval_dir = (
-        "/graphics/scratch2/staff/zakeri/tmp/pocslt_test/eval/ev0/bottom_half/eval_dir/"
+        "/path_to_your_eval_dir/"
     )
     eval_file_list = extract_files_with_given_extension_general(eval_dir, ".pkl")
     print("\n eval_file_list len: ", len(eval_file_list))
