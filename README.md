@@ -46,8 +46,16 @@
 Datasets for evaluation are available here:
 
 [Shapenet Test LMDB](https://huggingface.co/datasets/zakeri68/poc-slt-shapenet-test-lmdb)
+
 [ABC Test LMDB](https://huggingface.co/datasets/zakeri68/poc-slt-abc-test-lmdb)
+
 [P-VAE Test LMDB](https://huggingface.co/datasets/zakeri68/poc-slt-p_vae_shapenet-test-lmdb)
+
+## Running Instructions
+-Evaluation
+-Train
+*with initialization model
+*from scratch
 
 ## Dataset Generation
 To generate SDF from different mesh datasets in form of LMDBs, please use the source from project page at ()[].
