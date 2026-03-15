@@ -54,11 +54,11 @@ Datasets for evaluation are available here:
 ## Running Instructions
 - Evaluation
 - Train
- - with initialization model
- - from scratch
+  - with initialization model
+  - from scratch
 
 ## Dataset Generation
-To generate SDF from different mesh datasets in form of LMDBs, please use the source from project page at ()[].
+To generate SDF from different mesh datasets in form of LMDBs, please use the source from project page at (sdf-generation-pipeline)[https://github.com/cgtuebingen/sdf-generation].
 
 ## Citation
 
