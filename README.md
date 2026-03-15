@@ -25,6 +25,16 @@
 </p>
 <!--![POC-SLT Demo](docs/demo.gif)-->
 
+
+## Project Structure
+
+```bash
+├── data/
+├── docs/
+├── src/
+├── requirements.txt
+└── README.md
+```
 ## 📦 Model checkpoint
 [Shape Completion on Shapenet](https://huggingface.co/zakeri68/poc-slt-shapenet-completion)
 
@@ -32,18 +42,15 @@
 
 [Patchwise Variational Autoencoder (P-VAE) on Shapenet](https://huggingface.co/zakeri68/poc-slt-shapenet-p-vae)
 
-## Project Structure
+## Dataset
+Datasets for evaluation are available here:
 
-```bash
-├── data/
-├── src/
-├── results/
-├── requirements.txt
-├── training.py
-├── eval.py
-└── README.md
-```
+[Shapenet Test LMDB](https://huggingface.co/datasets/zakeri68/poc-slt-shapenet-test-lmdb)
+[ABC Test LMDB](https://huggingface.co/datasets/zakeri68/poc-slt-abc-test-lmdb)
+[P-VAE Test LMDB](https://huggingface.co/datasets/zakeri68/poc-slt-p_vae_shapenet-test-lmdb)
 
+## Dataset Generation
+To generate SDF from different mesh datasets in form of LMDBs, please use the source from project page at ()[].
 
 ## Citation
 
