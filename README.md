@@ -42,6 +42,11 @@
 
 [Patchwise Variational Autoencoder (P-VAE) on Shapenet](https://huggingface.co/zakeri68/poc-slt-shapenet-p-vae)
 
+[Shapenet Completion Initialization Model](https://huggingface.co/zakeri68/poc-slt-shapenet-completion-initialization-model)
+
+[ABC Completion Initialization Model](https://huggingface.co/zakeri68/poc-slt-abc-completion-initialization-model)
+
+
 ## Dataset
 Datasets for evaluation are available here:
 
@@ -53,9 +58,30 @@ Datasets for evaluation are available here:
 
 ## Running Instructions
 - Evaluation
+    - Shapenet Completion Model
+      - random partial [eval_config_random_shapenet](https://github.com/cgtuebingen/poc-slt/blob/main/src/evaluation/shapenet/eval_config_random_shapenet.py)
+      - masked partial [eval_config_shapenet](https://github.com/cgtuebingen/poc-slt/blob/main/src/evaluation/shapenet/eval_config_shapenet.py)
+
+    - ABC Completion Model
+      - masked partial [eval_config_abc](https://github.com/cgtuebingen/poc-slt/blob/main/src/evaluation/abc/eval_config_abc.py)
+
 - Train
-  - with initialization model
-  - from scratch
+    - Shapenet Completion Model
+      - with initialization model
+        - [train_no_empty_masking_custom_shapenet_config](https://github.com/cgtuebingen/poc-slt/blob/main/src/training/train_no_empty_masking_custom_shapenet_config.py)
+        - initialization model is available at [poc-slt-shapenet-completion-initialization-model](https://huggingface.co/zakeri68/poc-slt-shapenet-completion-initialization-model)
+
+      - from scratch
+        - you can use the code from [train_no_empty_masking_custom_shapenet_config](https://github.com/cgtuebingen/poc-slt/blob/main/src/training/train_no_empty_masking_custom_shapenet_config.py) and remove the initialization from pre-trained model provided and train from scratch.
+
+    - ABC Completion Model
+      - with initialization model
+        - [train_no_empty_masking_custom_abc_config](https://github.com/cgtuebingen/poc-slt/blob/main/src/training/train_no_empty_masking_custom_abc_config.py)
+        - initialization model is available at [poc-slt-abc-completion-initialization-model](https://huggingface.co/zakeri68/poc-slt-abc-completion-initialization-model)
+
+      - from scratch
+        - you can use the code from [train_no_empty_masking_custom_abc_config](https://github.com/cgtuebingen/poc-slt/blob/main/src/training/train_no_empty_masking_custom_abc_config.py) and remove the initialization from pre-trained model provided and train from scratch.
+
 
 ## Dataset Generation
 To generate SDF from different mesh datasets in form of LMDBs, please use the source from project page at [sdf-generation-pipeline](https://github.com/cgtuebingen/sdf-generation).
