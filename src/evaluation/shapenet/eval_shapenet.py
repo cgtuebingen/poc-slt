@@ -14,7 +14,7 @@ from src.utils import sub_voxel_related_fns as pp_fns
 from src.evaluation.shapenet.common_extract_bbx_with_mesh_file_name import (
     calculate_metric_scale_for_mesh_file_name,
 )
-from src.unused_code.common_fns_shapenet import (
+from src.evaluation.shapenet.common_files_shapenet import (
     evaluate,
     march_voxels_and_write_objs,
     write_evaluation_result,

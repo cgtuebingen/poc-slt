@@ -17,7 +17,7 @@ from src.evaluation.abc.calculate_bbx_abc_and_normalize_them_to_shapenet_scale i
 )
 from src.utils.custom_cutting import custom_mask
 from src.evaluation.abc.dataset_abc import setup_dataset
-from src.unused_code.common_fns_abc import (
+from src.evaluation.abc.common_files_abc import (
     march_voxels_and_write_objs,
     evaluate,
     write_evaluation_result,
